@@ -73,21 +73,23 @@ int main(int argc, char *argv[]) {
   //read: faz blocking ate ter algo para ler do cliente (depois do cliente ter executado um write) retorna numero de chars lidos
   //write: escreve para o cliente ler
 
+  while (1)
+  {
+    bzero(buf,256);
+    /* Now ask for a message from the user, this message
+      * will be read by server
+    */
+    printf("Client sends: ");
+    n = read(news1,buf,255);
+    printf("%s", buf);
+    if ( n < 0)
+      printf("ERROR - READ\n");
 
-  bzero(buf,256);
-  /* Now ask for a message from the user, this message
-    * will be read by server
-  */
-  printf("Client sends: ");
-  n = read(news1,buf,255);
-  printf("%s", buf);
-  if ( n < 0)
-    printf("ERROR - READ\n");
-
-  stringToUpper(buf, n);
-  n = write(news1,buf,n);
-  if (n < 0)
-    printf("ERROR - WRITE\n");
+    stringToUpper(buf, n);
+    n = write(news1,buf,n);
+    if (n < 0)
+      printf("ERROR - WRITE\n");
+  }
 
   close(s1);
   close(news1);

@@ -52,21 +52,25 @@ int main(int argc, char *argv[]) {
     //read: faz blocking ate ter algo para ler do cliente (depois do cliente ter executado um write) retorna numero de chars lidos
     //write: escreve para o cliente ler
 
-   printf("Please enter the message: ");
-   bzero(buf,256);
-   fgets(buf,255,stdin);
+  while (1)
+  {
+    printf("Please enter the message: ");
+    bzero(buf,256);
+    fgets(buf,255,stdin);
 
-   /* Send message to the server */
-   if (write(s1, buf, strlen(buf)) < 0) {
-      perror("ERROR writing to socket\n");
-      exit(1);
-   }
+    /* Send message to the server */
+    if (write(s1, buf, strlen(buf)) < 0) {
+       perror("ERROR writing to socket\n");
+       exit(1);
+    }
 
-   /* Now read server response */
-   bzero(buf,256);
-   n = read(s1, buf, 255);
+    /* Now read server response */
+    bzero(buf,256);
+    n = read(s1, buf, 255);
 
-   printf("Server: %s\n",buf);
+    printf("Server: %s\n",buf);
+  }
+
 
    close(s1);
    return 0;
