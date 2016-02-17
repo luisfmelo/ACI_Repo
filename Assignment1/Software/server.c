@@ -81,6 +81,12 @@ int main(int argc, char *argv[]) {
     */
     printf("Client sends: ");
     n = read(news1,buf,255);
+    if ( !strcmp(buf, "#\n") )
+    {
+      write(news1,"Conection Closed! Have a good Day!",36);
+      break;
+    }
+
     printf("%s", buf);
     if ( n < 0)
       printf("ERROR - READ\n");
