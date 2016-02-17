@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
    bzero(buf,256);
    n = read(s1, buf, 255);
 
-   printf("%s\n",buf);
+   printf("Server: %s\n",buf);
 
    close(s1);
    return 0;

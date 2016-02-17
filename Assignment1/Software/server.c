@@ -11,7 +11,7 @@
 
 #define port 6666
 
-char* stringToUpper(char buf[],int len);
+void stringToUpper(char buf[],int len);
 int main(int argc, char *argv[]) {
   int s1;         //socket system call
   int news1;      //socket accept system
@@ -84,9 +84,7 @@ int main(int argc, char *argv[]) {
   if ( n < 0)
     printf("ERROR - READ\n");
 
-
-  bzero(buf,256);
-  buf = stringToUpper(buf, n);
+  stringToUpper(buf, n);
   n = write(news1,buf,n);
   if (n < 0)
     printf("ERROR - WRITE\n");
@@ -97,13 +95,9 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-char* stringToUpper(char buf[],int len){
-  char str[256];
+void stringToUpper(char *buf,int len){
   for(int i = 0; i < len; i++)
   {
-    str[i] = toupper(buf[i]);
+    buf[i] = toupper(buf[i]);
   }
-
-  return str;
-
 }
