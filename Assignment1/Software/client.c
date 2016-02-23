@@ -69,6 +69,9 @@ int main(int argc, char *argv[]) {
     n = read(s1, buf, 255);
 
     printf("Server: %s\n",buf);
+
+    if ( !strcmp(buf, "Conection Closed! Have a good Day!\n") )
+      break;
   }
 
 

@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     n = read(news1,buf,255);
     if ( !strcmp(buf, "#\n") )
     {
-      write(news1,"Conection Closed! Have a good Day!",36);
+      write(news1,"Conection Closed! Have a good Day!\n",37);
       break;
     }
 
