@@ -8,8 +8,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
 #include <string.h>
+
+          /* Application layer Protocol Data Unit */
+
 
 /*retorna:   fd: ok   -1: error                  */
 int connectClient (char* ip_serv, int port);
@@ -20,8 +22,8 @@ int connectServer (int port);
 /*retorna:    1: ok   -1: error                  */
 int disconnect (int fd);
 
-/*
-int Write_multiple_coils(fd, st_c, n_c, val);
-int Read_coils(fd, st_c, n_c, val);
+/*retorna:  nºde coils escritas: ok    -1: error  */
+int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils);
+/*int Read_coils(fd, st_c, n_c, val);
 int Request_handler();
 */

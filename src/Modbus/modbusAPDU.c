@@ -70,8 +70,7 @@ int disconnect (int fd)
   return shutdown(fd, 2);
 }
 
-/*
-Write_multiple_coils(fd, st_c, n_c, val)
+int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils);
 {
 // verifica consistência dos parâmetros
 // constroi APDU
@@ -81,8 +80,10 @@ Write_multiple_coils(fd, st_c, n_c, val)
 // retorna: num coils escritas
 //– ok, <0
 //– erro
+return 0;
 }
 
+/*
 Read_coils(fd, st_c, n_c, val)
 {
 // verifica consistência dos parâmetros

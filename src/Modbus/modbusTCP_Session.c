@@ -1,7 +1,7 @@
-Create ( );
-Open ( );
-Close ( );
-Send_Modbus_request (fd, APDU, APDU_R)
+//Create ( );
+//Open ( );
+//Close ( );
+int Send_Modbus_request (int fd, APDU, APDU_R)
  {
  // gera TI (trans.ID número de sequência)
  // constroi PDU = APDU(SDU) + MBAP
