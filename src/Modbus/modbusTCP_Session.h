@@ -10,6 +10,8 @@
 
 #include <string.h>
 
+#include "tcp.h"
+
           /* Session layer */
 
-int Send_Modbus_request (int fd, APDU, APDU_R);
+int Send_Modbus_request (int fd, char *APDU, char*APDU_R);

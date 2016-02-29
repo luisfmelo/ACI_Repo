@@ -11,3 +11,4 @@
 #include <string.h>
 
 int W_coils (int startCoilAddr, int nCoils, char* valueCoils);
+int R_coils (int startCoilAddr, int nCoils, char* valueCoils);

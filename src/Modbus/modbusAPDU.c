@@ -101,7 +101,7 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils
   PDU[0] = 0x0F;
   // start Address
   PDU[1] = startCoilAddr & 0xff;
-  PDU[2] = (startCoilAddr>>8) & 0xff;
+  PDU[2] = (startCoilAddr >> 8) & 0xff;
   // Qty of outpus
   PDU[3] = nCoils & 0xff;
   PDU[4] = (nCoils >> 8) & 0xff;
