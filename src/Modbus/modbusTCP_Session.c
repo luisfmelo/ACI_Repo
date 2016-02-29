@@ -11,9 +11,8 @@ Send_Modbus_response ( );
 
 int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
 {
-  unsigned int trans_id, protocol_id[2], length, unit_id, res;
+  unsigned int trans_id, protocol_id[2], length, unit_id, res, i;
   unsigned char *MBAP, *ADU;
-  unsigned char startCoilAddr[2], nCoils[2];
 
   // get start addr; nCoils and Value
   startCoilAddr[i] = PDU[i + 1];
@@ -37,16 +36,34 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
   // Unit Identifier (1 byte)
   MBAP[6] = 0;
 
+  //create ADU = MBAP + PDU
+  ADU = (char*) malloc( sizeof(MBAP) + sizeof(PDU));
 
-//CHECKAR A PARTIR DAQUI
+  for (i = 0; i < sizeof(MBAP); i++)
+    ADU[i] = MBAP[i];
 
- //write (fd, PDU) // envia Modbus TCP PDU
-  res = W_coils (ADU);
+  for (i = 0; i < sizeof(MBAP); i++)
+    ADU[i] = MBAP[i];
+
+//write (fd, PDU) // envia Modbus TCP PDU
+  res = W_coils (fd, ADU);
 
  //read (fd, PDU_R) // resposta ou timeout
- res = R_coils (&PDU_R);
+ res = R_coils (fd, &PDU_R);
 
- // se resposta, remove MBAP, PDU_R  APDU_R
+ // check response
+   if ( res == -1)
+   {
+     printf("Error sending Modbus Request - timeout");
+     return -1;
+   }
+   //ou else if? se for timeout da sempre erro?
+   if ( PDU_R[0] == 0x8F )
+   {
+     printf("Error sending Modbus Request - Error: %c", PDU_R[1]);
+     return -1;
+   }
+
  // retorna: APDU_R e 0 – ok, <0 – erro (timeout)
  return 1;
  }
