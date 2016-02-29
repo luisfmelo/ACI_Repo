@@ -1,11 +1,6 @@
 //Create ( );
 //Open ( );
 //Close ( );
-/*
-
-Receive_Modbus_request ( );
-Send_Modbus_response ( );
-*/
 
 #include "modbusSession.h"
 
@@ -20,7 +15,7 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
   // generate TI (transaction ID - sequence number)
   trans_id = 0; //recebo pelo cliente? ou gero um aleatorio aqui?
 
-// create PDU = APDU(SDU) + MBAP -> eu acho que é ADU = MBAP + PDU
+ // create PDU = APDU(SDU) + MBAP -> eu acho que é ADU = MBAP + PDU
   // create MBAP = 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)
   MBAP = (char*)malloc(7 * sizeof(char));
 
@@ -45,11 +40,32 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
   for (i = 0; i < sizeof(MBAP); i++)
     ADU[i] = MBAP[i];
 
-//write (fd, PDU) // envia Modbus TCP PDU
-  res = W_coils (fd, ADU);
+
+
+
+
+
+
+ //write (fd, PDU) // envia Modbus TCP PDU
+  res = W_coils (fd, PDU);
+
+  // check response
+    if ( res == -1)
+    {
+      printf("Error sending Modbus Request - timeout");
+      return -1;
+    }
+    //ou else if? se for timeout da sempre erro?
+    if ( PDU_R[0] == 0x8F )
+    {
+      printf("Error sending Modbus Request - Error: %c", PDU_R[1]);
+      return -1;
+    }
+
+
 
  //read (fd, PDU_R) // resposta ou timeout
- res = R_coils (fd, &PDU_R);
+  res = R_coils (fd, &PDU_R);
 
  // check response
    if ( res == -1)
@@ -64,6 +80,22 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
      return -1;
    }
 
- // retorna: APDU_R e 0 – ok, <0 – erro (timeout)
- return 1;
+
+
+ // no errors
+   return nCoils;
+ }
+
+ int Receive_Modbus_request (int fd, char *APDU_P, int TI)
+ {
+  //read (fd, PDU) // lê PDU com pedido
+  /// extrai MBAP (PDUAPDU_P) e TI
+  // retorna: APDU_P e TI – ok, <0 – erro
+ }
+ int Send_Modbus_response (int fd, char *APDU_P, int TI)
+ {
+ // constroi PDU = APDU_R + MBAP (com TI)
+  //write (fd, PDU)
+ // envia Modbus TCP PDU com resposta
+ // retorna: >0 – ok, <0 – erro
  }
