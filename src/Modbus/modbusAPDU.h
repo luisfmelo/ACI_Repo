@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 
 #include <string.h>
+#include "modbusSession.h"
+
 
           /* Application layer Protocol Data Unit */
 
