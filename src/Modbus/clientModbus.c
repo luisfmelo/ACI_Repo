@@ -9,8 +9,8 @@ int main(){
   fd = connectClient ("127.0.0.1", port);
   int n = Write_multiple_coils(fd, 0, 5, "abcde");
   if (n < 0)
-    printf("ERROR!\n")
+    printf("ERROR!\n");
   else
-    printf("I think it wen ok");
+    printf("I think it went ok!\n\n");
   disconnect (fd);
 }

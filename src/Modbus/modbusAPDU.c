@@ -52,8 +52,8 @@ int connectServer (int port)
 
   listen(fd,5);
 
-  int clilen = sizeof(cli_addr);
-  newfd = accept(fd, (struct sockaddr *) &cli_addr, &clilen);
+  socklen_t clilen = sizeof(cli_addr);  //int???
+  newfd = accept(fd, (struct sockaddr *) &cli_addr, &clilen); //---------------->&clilen??
   if (newfd < 0) {
     printf("ERROR accepting socket\n");
     exit(1);
@@ -73,7 +73,7 @@ int disconnect (int fd)
 int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils)
 {
   unsigned int N, i;
-  unsigned char *PDU, *PDU_R;
+  char *PDU, *PDU_R;
 
  // Check Parameter consistency
   // start coil between 0x0000 and 0xFFFF
@@ -119,7 +119,7 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils
   PDU_R = (char*)malloc(5 * sizeof(char));
 
  //Send Request
-  int res = Send_Modbus_request (fd, PDU, &PDU_R)
+  int res = Send_Modbus_request (fd, PDU, PDU_R);
 
  // check response
   if ( res == -1)
@@ -141,7 +141,7 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils
 int Read_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils)
 {
   unsigned int N, i;
-  unsigned char *PDU, *PDU_R;
+  char *PDU, *PDU_R;
 
  // Check Parameter consistency
   // start coil between 0x0000 and 0xFFFF
@@ -187,7 +187,7 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils)
   PDU_R = (char*)malloc(5 * sizeof(char));
 
  //Send Request
-  int res = Send_Modbus_request (fd, PDU, &PDU_R)
+  int res = Send_Modbus_request (fd, PDU, PDU_R);
 
  // check response
   if ( res == -1)
@@ -214,4 +214,5 @@ int Request_handler (int fd)
   // prepara e envia APDU de resposta
   //Send_Modbus_response (fd, APDU_R, TI)
   // retorna: >0 – ok, <0 – erro
+  return 1;
 }

@@ -2,15 +2,12 @@
 //Open ( );
 //Close ( );
 
-#include "modbusSession.h"
+#include "modbusTCP_Session.h"
 
-int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
+int Send_Modbus_request (int fd, char* PDU, char* PDU_R)
 {
-  unsigned int trans_id, protocol_id[2], length, unit_id, res, i;
-  unsigned char *MBAP, *ADU;
-
-  // get start addr; nCoils and Value
-  startCoilAddr[i] = PDU[i + 1];
+  unsigned int trans_id, res, i;
+  char *MBAP, *ADU;
 
   // generate TI (transaction ID - sequence number)
   trans_id = 0; //recebo pelo cliente? ou gero um aleatorio aqui?
@@ -65,7 +62,7 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
 
 
  //read (fd, PDU_R) // resposta ou timeout
-  res = R_coils (fd, &PDU_R);
+  res = R_coils (fd, PDU_R);
 
  // check response
    if ( res == -1)
@@ -83,7 +80,9 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
 
 
  // no errors
-   return nCoils;
+   //return nCoils;
+
+   return 1;
  }
 
  int Receive_Modbus_request (int fd, char *APDU_P, int TI)
@@ -91,11 +90,14 @@ int Send_Modbus_request (int fd, char *PDU, char *PDU_R)
   //read (fd, PDU) // lê PDU com pedido
   /// extrai MBAP (PDUAPDU_P) e TI
   // retorna: APDU_P e TI – ok, <0 – erro
+  return 1;
  }
+
  int Send_Modbus_response (int fd, char *APDU_P, int TI)
  {
  // constroi PDU = APDU_R + MBAP (com TI)
   //write (fd, PDU)
  // envia Modbus TCP PDU com resposta
  // retorna: >0 – ok, <0 – erro
+ return 1;
  }
