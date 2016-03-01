@@ -1,12 +1,8 @@
 #include "modbusTCP_Session.h"
 
-<<<<<<< HEAD
 int Create ( ){
   return 1;
 }
-=======
-#include "modbusTCP_Session.h"
->>>>>>> 542295b36cba51b6b2bfa4b95353aea269ea2e79
 
 int Open ( ){
   return 1;
