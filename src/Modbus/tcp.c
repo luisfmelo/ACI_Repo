@@ -1,44 +1,11 @@
 #include "tcp.h"
 
-int W_coils (int fd, unsigned char *ADU){
-  /*
-  // read nCoils at some address (which start with startCoilAddr)
-  unsigned char startCoilAddr[2], nCoils[2], valueCoils[nCoils];
-  int n;
+int W_coils (int fd, unsigned char *PDU){
 
-  bzero(valueCoils, nCoils);
-
-  n = write(fd, valueCoils, nCoils);
-
-  if ( n < 0)
-  {
-      printf("Error writing!\n");
-      return -1;
-  }
-*/
-  return 69;
-  //no errors
-  //return nCoils;
+  return 1;
 }
 
-int R_coils (int fd, unsigned char* ADU)
+int R_coils (int fd, unsigned char* PDU)
 {
-  /*
-    // read nCoils at some address (which start with startCoilAddr)
-    unsigned char startCoilAddr[2], nCoils[2], valueCoils[nCoils];
-
-    bzero(valueCoils, nCoils);
-
-    n = read(fd, valueCoils, nCoils);
-
-    if ( n < 0)
-    {
-        printf("Error reading!\n");
-        return -1;
-    }
-
-    //no errors
-    return nCoils;
-    */
-    return 6969;
+    return 1;
 }

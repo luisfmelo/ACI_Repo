@@ -55,16 +55,11 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
   for (i = 0; i < sizeof(MBAP); i++)
     ADU[i] = MBAP[i];
 
-  for (i = 0; i < sizeof(MBAP); i++)
-    ADU[i] = MBAP[i];
+  for (int j = 0; j < sizeof(PDU); j++)
+    ADU[i+j] = PDU[i];
 
 
-
-
-
-    printf("--------------------------------------------------------------");
-
- //write (fd, PDU) // envia Modbus TCP PDU
+ // envia Modbus TCP PDU
   res = W_coils (fd, PDU);
 
   // check response
@@ -81,7 +76,7 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
     }
 
 
- //read (fd, PDU_R) // resposta ou timeout
+// resposta ou timeout
   res = R_coils (fd, PDU_R);
 
  // check response
@@ -104,19 +99,74 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
    return n_coils;
 }
 
-int Receive_Modbus_request (int fd, unsigned char *APDU_P, int TI)
+int Receive_Modbus_request (int fd, unsigned char *PDU, int *TI)
 {
-  //read (fd, PDU) // lê PDU com pedido
+  unsigned char header[7], *ADU;
+  int res;
+
+  res = read (fd, ADU) // lê PDU com pedido
+  if (res < 0)
+  {
+    //ERRO
+  }
   /// extrai MBAP (PDUAPDU_P) e TI
-  // retorna: APDU_P e TI – ok, <0 – erro
+
+  *TI = (int)(PDU_R[0] << 8) + (int)(PDU_R[1]);
+
+  PDU = (unisgned char)malloc((strlen(ADU) - 7) * sizeof(unsigned char));
+
+  for(int i = 0; i < n; i++)
+    ADU[i] = buff[i];
+
+  // retorna: ADU e TI – ok, <0 – erro
   return 1;
 }
 
-int Send_Modbus_response (int fd, unsigned char *APDU_P, int TI)
+int Send_Modbus_response (int fd, unsigned char *ADU, int TI)
 {
   // constroi PDU = APDU_R + MBAP (com TI)
-  //write (fd, PDU)
+  write (fd, ADU)
   // envia Modbus TCP PDU com resposta
   // retorna: >0 – ok, <0 – erro
   return 1;
+}
+
+int read (int fd, char* ADU)
+{
+  // read nCoils at some address (which start with startCoilAddr)
+  int n;
+  unsigned char buff[260];
+
+  n = read(fd, buff, 260);
+
+  if ( n < 0)
+  {
+      printf("Error writing!\n");
+      return -1;
+  }
+
+  ADU = malloc ( n * sizeof(unsigned char));
+
+  for(int i = 0; i < n; i++)
+    ADU[i] = buff[i];
+
+  //no errors
+  return nCoils;
+}
+
+int write (int fd, char* PDU)
+{
+  // write nCoils at some address (which start with startCoilAddr)
+  int n;
+
+  n = write(fd, PDU, strlen(nCoils));
+
+  if ( n < 0)
+  {
+      printf("Error writing!\n");
+      return -1;
+  }
+
+  //no errors
+  return nCoils;
 }
