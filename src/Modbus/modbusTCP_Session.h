@@ -9,11 +9,14 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #include "tcp.h"
 
           /* Session layer */
 
 int Send_Modbus_request (int fd, unsigned char* APDU, unsigned char*APDU_R);
-int Receive_Modbus_request (int fd, unsigned char* APDU_P, int TI);
-int Send_Modbus_response (int fd, unsigned char* APDU_P, int TI);
+int Receive_Modbus_request (int fd, unsigned char *PDU, int *TI);
+int Send_Modbus_response (int fd, unsigned char *ADU, int TI);
+int readSocket (int fd, unsigned char* ADU);
+int writeSocket (int fd, unsigned char* PDU);
