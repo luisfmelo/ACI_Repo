@@ -1,8 +1,16 @@
-//Create ( );
-//Open ( );
-//Close ( );
-
 #include "modbusTCP_Session.h"
+
+int Create ( ){
+  return 1;
+}
+
+int Open ( ){
+  return 1;
+}
+
+int Close ( ){
+  return 1;
+}
 
 int Send_Modbus_request (int fd, char* PDU, char* PDU_R)
 {
@@ -83,21 +91,21 @@ int Send_Modbus_request (int fd, char* PDU, char* PDU_R)
    //return nCoils;
 
    return 1;
- }
+}
 
- int Receive_Modbus_request (int fd, char *APDU_P, int TI)
- {
+int Receive_Modbus_request (int fd, char *APDU_P, int TI)
+{
   //read (fd, PDU) // lê PDU com pedido
   /// extrai MBAP (PDUAPDU_P) e TI
   // retorna: APDU_P e TI – ok, <0 – erro
   return 1;
- }
+}
 
- int Send_Modbus_response (int fd, char *APDU_P, int TI)
- {
- // constroi PDU = APDU_R + MBAP (com TI)
+int Send_Modbus_response (int fd, char *APDU_P, int TI)
+{
+  // constroi PDU = APDU_R + MBAP (com TI)
   //write (fd, PDU)
- // envia Modbus TCP PDU com resposta
- // retorna: >0 – ok, <0 – erro
- return 1;
- }
+  // envia Modbus TCP PDU com resposta
+  // retorna: >0 – ok, <0 – erro
+  return 1;
+}
