@@ -10,5 +10,5 @@
 
 #include <string.h>
 
-int W_coils (int fd, char* ADU);
-int R_coils (int fd, char* ADU);
+int W_coils (int fd, unsigned char* ADU);
+int R_coils (int fd, unsigned char* ADU);

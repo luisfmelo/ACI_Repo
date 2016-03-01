@@ -25,8 +25,8 @@ int connectServer (int port);
 int disconnect (int fd);
 
 /*retorna:  nºde coils escritas: ok    -1: error  */
-int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils);
+int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils);
 
-int Read_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils);
+int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils);
 
 int Request_handler (int fd);

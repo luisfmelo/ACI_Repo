@@ -1,6 +1,6 @@
 #include "tcp.h"
 
-int W_coils (int fd, char *ADU){
+int W_coils (int fd, unsigned char *ADU){
   /*
   // read nCoils at some address (which start with startCoilAddr)
   unsigned char startCoilAddr[2], nCoils[2], valueCoils[nCoils];
@@ -16,12 +16,12 @@ int W_coils (int fd, char *ADU){
       return -1;
   }
 */
-  return 1;
+  return 69;
   //no errors
   //return nCoils;
 }
 
-int R_coils (int fd, char* ADU)
+int R_coils (int fd, unsigned char* ADU)
 {
   /*
     // read nCoils at some address (which start with startCoilAddr)
@@ -40,5 +40,5 @@ int R_coils (int fd, char* ADU)
     //no errors
     return nCoils;
     */
-    return 1;
+    return 6969;
 }
