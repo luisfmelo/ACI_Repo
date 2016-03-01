@@ -27,7 +27,7 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
 
 
   unsigned int trans_id, res, i, n_coils;
-  unsigned char *MBAP, *ADU;
+  unsigned char *MBAP, *ADU, *ADU_R;
 
   // generate TI (transaction ID - sequence number)
   trans_id = ID;
@@ -56,44 +56,36 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
     ADU[i] = MBAP[i];
 
   for (int j = 0; j < sizeof(PDU); j++)
-    ADU[i+j] = PDU[i];
+    ADU[i+j] = PDU[j];
 
 
  // envia Modbus TCP PDU
-  res = W_coils (fd, PDU);
+  res = write(fd, ADU, sizeof(ADU));
 
   // check response
-    if ( res == -1)
-    {
-      printf("Error sending Modbus Request - timeout");
-      return -1;
-    }
-    //ou else if? se for timeout da sempre erro?
-    if ( PDU_R[0] == 0x8F )
-    {
-      printf("Error sending Modbus Request - Error: %c", PDU_R[1]);
-      return -1;
-    }
+  if ( res == -1 || res != sizeof(ADU) )
+  {
+    write(fd, "ERROR sending ADU!\n", 50);
+    return -1;
+  }
 
-
- // resposta ou timeout
-  res = R_coils (fd, PDU_R);
+  // lê Modbus TCP PDU
+  ADU_R = (unsigned char*)malloc(sizeof(ADU));
+  res = read(fd, ADU_R, sizeof(ADU_R));
 
  // check response
-   if ( res == -1)
+   if ( res == -1 || res != sizeof(ADU_R) )
    {
-     printf("Error sending Modbus Request - timeout");
-     return -1;
-   }
-   //ou else if? se for timeout da sempre erro?
-   if ( PDU_R[0] == 0x8F )
-   {
-     printf("Error sending Modbus Request - Error: %c", PDU_R[1]);
+     write(fd, "ERROR reading ADU_R!\n", 50);
      return -1;
    }
 
+   // remove Header from ADU_R -> return PDU_R
+   PDU_R = (unsigned char*)malloc(sizeof(ADU_R) - 7 );
+   for (i = 0; i < sizeof(ADU_R); i++)
+     PDU_R[i] = ADU_R[i + 7];
 
-  n_coils = (unsigned int)(PDU_R[3] << 8) + (unsigned int)(PDU_R[4]);
+   n_coils = (unsigned int)(PDU_R[3] << 8) + (unsigned int)(PDU_R[4]);
 
  // no errors
    return n_coils;

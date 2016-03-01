@@ -101,11 +101,11 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   // Function Code: 0x0F
   PDU[0] = 0x0F;
   // start Address
-  PDU[2] = (startCoilAddr & 0xff);
   PDU[1] = (startCoilAddr >> 8) & 0xff;
+  PDU[2] = (startCoilAddr & 0xff);
   // Qty of outpus
-  PDU[4] = nCoils & 0xff;
   PDU[3] = (nCoils >> 8) & 0xff;
+  PDU[4] = nCoils & 0xff;
   // Byte Count
   PDU[5] = N;
 
