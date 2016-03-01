@@ -66,8 +66,8 @@ int connectServer (int port)
 
 int disconnect (int fd)
 {
-  printf("Disconected with success from socket: %d!\n\n\n", fd);
-  return shutdown(fd, 2);
+  printf("\nDisconected with success from socket: %d!\n\n\n", fd);
+  return shutdown(fd, 1);
 }
 
 int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils)
@@ -83,14 +83,14 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils
     return -2;
   }
   //nCoils between 0x0001 and 0x07B0
-  if ( nCoils < 0 || nCoils > 0xFFFF )
+  if ( nCoils < 0 || nCoils > 0x07B0 )
   {
     printf("Error with number of coils");
     return -2;
   }
 
-  // Create APDU (or PDU????)
-  if (nCoils % 8 == 0)
+  // Create PDU
+  if (nCoils % 8 != 0)
     N = nCoils / 8 + 1;
   else
     N = nCoils / 8;
@@ -99,13 +99,13 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, char* valueCoils
   PDU = (char*)malloc((N + 6) * sizeof(char));
 
   // Function Code: 0x0F
-  PDU[0] = 0x0F;
+  PDU[0] = (char)0x0F;
   // start Address
-  PDU[1] = startCoilAddr & 0xff;
-  PDU[2] = (startCoilAddr >> 8) & 0xff;
+  PDU[2] = (startCoilAddr & 0xff);
+  PDU[1] = (startCoilAddr >> 8) & 0xff;
   // Qty of outpus
-  PDU[3] = nCoils & 0xff;
-  PDU[4] = (nCoils >> 8) & 0xff;
+  PDU[4] = nCoils & 0xff;
+  PDU[3] = (nCoils >> 8) & 0xff;
   // Byte Count
   PDU[5] = N;
 

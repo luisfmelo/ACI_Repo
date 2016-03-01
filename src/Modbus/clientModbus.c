@@ -5,12 +5,15 @@
 #define port 6666
 
 int main(){
-  int fd;
+  int fd, res;
+
   fd = connectClient ("127.0.0.1", port);
-  int n = Write_multiple_coils(fd, 0, 5, "abcde");
-  if (n < 0)
-    printf("ERROR!\n");
-  else
-    printf("I think it went ok!\n\n");
+
+  char vals[2] = {0x01, 0xCD};
+
+  res = Write_multiple_coils(fd, 20, 9, vals);
+  if (res < -1)
+    printf("CUIDADO\n");
+
   disconnect (fd);
 }

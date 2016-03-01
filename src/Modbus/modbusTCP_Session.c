@@ -1,19 +1,28 @@
 #include "modbusTCP_Session.h"
 
-int Create ( ){
-  return 1;
-}
-
-int Open ( ){
-  return 1;
-}
-
-int Close ( ){
-  return 1;
-}
-
 int Send_Modbus_request (int fd, char* PDU, char* PDU_R)
 {
+  //For Test Sake:*********************
+  printf("\n\nPDU: ");
+  for (int i = 0; i < 8; i++)
+    printf("%x ", PDU[i]);
+  PDU_R[0] = PDU[0];
+  PDU_R[1] = PDU[1];
+  PDU_R[2] = PDU[2];
+  PDU_R[3] = PDU[3];
+  PDU_R[4] = PDU[4];
+  int n = (PDU_R[3] - '0') * 10 + (PDU_R[4] - '0');
+
+  printf("\n\nPDU_R: ");
+  for (int i = 0; i < 5; i++)
+    printf("%x ", PDU_R[i]);
+
+  printf("\n\n\tN coils: %x", n);
+
+  return n;
+  //***********************************
+
+
   unsigned int trans_id, res, i;
   char *MBAP, *ADU;
 
