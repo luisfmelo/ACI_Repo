@@ -157,8 +157,8 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
     return -2;
   }
 
-  // Create APDU (or PDU????)
-  if (nCoils % 8 == 0)
+  // Create PDU
+  if (nCoils % 8 != 0)
     N = nCoils / 8 + 1;
   else
     N = nCoils / 8;
@@ -169,11 +169,11 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
   // Function Code: 0x01
   PDU[0] = 0x01;
   // start Address
-  PDU[1] = startCoilAddr & 0xff;
-  PDU[2] = (startCoilAddr >> 8) & 0xff;
+  PDU[1] = (startCoilAddr >> 8) & 0xff; //MSB
+  PDU[2] = startCoilAddr & 0xff;        //LSB
   // Qty of outpus
-  PDU[3] = nCoils & 0xff;
-  PDU[4] = (nCoils >> 8) & 0xff;
+  PDU[3] = (nCoils >> 8) & 0xff;        //MSB
+  PDU[4] = nCoils & 0xff;               //LSB
   // Byte Count
   PDU[5] = N;
 
