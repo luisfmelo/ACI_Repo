@@ -2,6 +2,9 @@
 
 int ID = 0;
 
+/**
+ *
+ */
 int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
 {
   /*For Test Sake:*********************
@@ -33,7 +36,7 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
   trans_id = ID;
   ID++;
 
- // create PDU = APDU(SDU) + MBAP -> eu acho que é ADU = MBAP + PDU
+  // create PDU = APDU(SDU) + MBAP -> eu acho que é ADU = MBAP + PDU
   // create MBAP = 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)
   MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
 
@@ -50,7 +53,7 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
   MBAP[6] = 0xFF;
 
   //create ADU = MBAP + PDU
-  ADU = (unsigned char*) malloc( sizeof(MBAP) + sizeof(PDU));
+  ADU = (unsigned char*) malloc(sizeof(MBAP) + sizeof(PDU));
 
   for (i = 0; i < sizeof(MBAP); i++)
     ADU[i] = MBAP[i];
@@ -58,9 +61,8 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
   for (int j = 0; j < sizeof(PDU); j++)
     ADU[i+j] = PDU[j];
 
-
- // envia Modbus TCP PDU
-  res = write(fd, ADU);
+  // envia Modbus TCP PDU
+  res = write(fd, ADU, sizeof(ADU));
 
   // check response
   if ( res == -1 || res != sizeof(ADU) )
@@ -74,35 +76,49 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
   res = read(fd, ADU_R);
 
  // check response
+<<<<<<< HEAD
    if ( res == -1 || res != sizeof(ADU_R) )
    {
      write(fd, "ERROR reading ADU_R!\n");
+=======
+    if ( res == -1 || res != sizeof(ADU_R) )
+    {
+     write(fd, "ERROR reading ADU_R!\n", 50);
+>>>>>>> 97dcb57ed7f126f79cc81bbd8c9783041996d1a0
      return -1;
-   }
+    }
 
    // remove Header from ADU_R -> return PDU_R
+<<<<<<< HEAD
    PDU_R = (unsigned char*)malloc(sizeof(ADU_R) );
+=======
+   PDU_R = (unsigned char*)malloc(sizeof(ADU_R) - 7 );
+
+>>>>>>> 97dcb57ed7f126f79cc81bbd8c9783041996d1a0
    for (i = 0; i < sizeof(ADU_R); i++)
      PDU_R[i] = ADU_R[i + 7];
 
    n_coils = (unsigned int)(PDU_R[3] << 8) + (unsigned int)(PDU_R[4]);
 
- // no errors
+   // no errors
    return n_coils;
 }
 
+/**
+ *
+ */
 int Receive_Modbus_request (int fd, unsigned char *PDU, int *TI)
 {
   unsigned char ADU[1];
   int res;
 
-  res = readSocket (fd, ADU);  // lê PDU com pedido
-  if (res < 0)
-  {
+  res = readSocket(fd, ADU);  // lê PDU com pedido
+  if (res < 0)  {
     //ERRO
+      printf("Erro a receber...");
   }
-  /// extrai MBAP (PDUAPDU_P) e TI
 
+  // extrai MBAP (PDU -> APDU_P) e TI
   *TI = (int)(PDU[0] << 8) + (int)(PDU[1]);
 
   PDU = (unsigned char*)malloc((sizeof(ADU) - 7) * sizeof(unsigned char));
@@ -114,30 +130,57 @@ int Receive_Modbus_request (int fd, unsigned char *PDU, int *TI)
   return 1;
 }
 
-int Send_Modbus_response (int fd, unsigned char *ADU, int TI)
+/**
+ *
+ */
+int Send_Modbus_response (int fd, unsigned char *APDU_R, int TI)
 {
-  // constroi PDU = APDU_R + MBAP (com TI)
-  //write (fd, ADU)
+  // constroi PDU = APDU_R + MBAP[= 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)] (com TI)
+  unsigned char * MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
+
+  // Transaction Identifier (2 bytes)
+  MBAP[0] = (TI >> 8) & 0xFF;
+  MBAP[1] = TI & 0xFF;
+  // Protocol Identifier -> 0: MODBUS
+  MBAP[2] = 0x00;
+  MBAP[3] = 0x00;
+  // Length: Unit Identifier (1 byte) + PDU length
+  MBAP[4] = ((sizeof(APDU_R) + 1) >> 8) & 0xFF;
+  MBAP[5] = (sizeof(APDU_R) + 1) & 0xFF;
+  // Unit Identifier (1 byte)
+  MBAP[6] = 0x01;
+
+  unsigned char * PDU = (unsigned char*)malloc((sizeof(APDU_R) + 7) * sizeof(unsigned char));
+
+  int i;
+
+  for(i = 0; i < sizeof(MBAP); i++)
+    PDU[i] = MBAP[i];
+
+  for(int j = 0; j < sizeof(APDU_R); j++)
+      PDU[i+j] = APDU_R[j];
+
   // envia Modbus TCP PDU com resposta
   // retorna: >0 – ok, <0 – erro
-  return 1;
+  return writeSocket(fd, PDU);
 }
 
+/**
+ *
+ */
 int readSocket (int fd, unsigned char* ADU)
 {
-  // read nCoils at some address (which start with startCoilAddr)
   int n;
   unsigned char buff[260];
 
   n = read(fd, buff, 260);
 
-  if ( n < 0)
-  {
-      printf("Error writing!\n");
+  if(n < 0) {
+      printf("Error reading socket!\n");
       return -1;
   }
 
-  ADU = (unsigned char *)realloc (ADU,  n * sizeof(unsigned char));
+  ADU = (unsigned char *)realloc(ADU, n * sizeof(unsigned char));
 
   for(int i = 0; i < n; i++)
     ADU[i] = buff[i];
@@ -146,19 +189,19 @@ int readSocket (int fd, unsigned char* ADU)
   return n;
 }
 
+/**
+ *
+ */
 int writeSocket (int fd, unsigned char* PDU)
 {
-  // write nCoils at some address (which start with startCoilAddr)
   int n;
 
   n = write(fd, PDU, sizeof(PDU));
 
-  if ( n < 0)
-  {
+  if ( n < 0)  {
       printf("Error writing!\n");
       return -1;
   }
 
-  //no errors
   return n;
 }
