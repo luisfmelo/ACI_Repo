@@ -60,28 +60,28 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
 
 
  // envia Modbus TCP PDU
-  res = write(fd, ADU, sizeof(ADU));
+  res = write(fd, ADU);
 
   // check response
   if ( res == -1 || res != sizeof(ADU) )
   {
-    write(fd, "ERROR sending ADU!\n", 50);
+    write(fd, "ERROR sending ADU!\n");
     return -1;
   }
 
   // lê Modbus TCP PDU
   ADU_R = (unsigned char*)malloc(sizeof(ADU));
-  res = read(fd, ADU_R, sizeof(ADU_R));
+  res = read(fd, ADU_R);
 
  // check response
    if ( res == -1 || res != sizeof(ADU_R) )
    {
-     write(fd, "ERROR reading ADU_R!\n", 50);
+     write(fd, "ERROR reading ADU_R!\n");
      return -1;
    }
 
    // remove Header from ADU_R -> return PDU_R
-   PDU_R = (unsigned char*)malloc(sizeof(ADU_R) - 7 );
+   PDU_R = (unsigned char*)malloc(sizeof(ADU_R) );
    for (i = 0; i < sizeof(ADU_R); i++)
      PDU_R[i] = ADU_R[i + 7];
 
