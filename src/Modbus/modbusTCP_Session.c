@@ -5,40 +5,18 @@ int ID = 0;
 /**
  *
  */
-int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
+int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R)
 {
-  /*For Test Sake:*********************
-  printf("\n\nPDU: ");
-  for (int i = 0; i < sizeof(PDU) ; i++)
-    printf("%x ", PDU[i]);
-
-  PDU_R[0] = PDU[0];
-  PDU_R[1] = PDU[1];
-  PDU_R[2] = PDU[2];
-  PDU_R[3] = PDU[3];
-  PDU_R[4] = PDU[4];
-  unsigned int n = (unsigned int)(PDU_R[3] << 8) + (unsigned int)(PDU_R[4]);
-
-  printf("\n\nPDU_R: ");
-  for (int i = 0; i < 5; i++)
-    printf("%x ", PDU_R[i]);
-
-  printf("\n\n\tN coils: %d", n);
-
-  return n;
-  ***********************************/
-
-
   unsigned int trans_id, res, i, n_coils;
-  unsigned char *MBAP, *ADU, *ADU_R;
+  unsigned char MBAP[7], PDU[7 + sizeof(SDU)], PDU_R[5];
 
   // generate TI (transaction ID - sequence number)
   trans_id = ID;
   ID++;
 
-  // create PDU = APDU(SDU) + MBAP -> eu acho que é ADU = MBAP + PDU
+  // create PDU = APDU(SDU) + MBAP
   // create MBAP = 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)
-  MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
+  //MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
 
   // Transaction Identifier (2 bytes)
   MBAP[0] = (trans_id >> 8) & 0xFF;
@@ -46,59 +24,59 @@ int Send_Modbus_request (int fd, unsigned char* PDU, unsigned char* PDU_R)
   // Protocol Identifier -> 0: MODBUS
   MBAP[2] = 0x00;
   MBAP[3] = 0x00;
-  // Length: Unit Identifier (1 byte) + PDU length
-  MBAP[4] = ( (sizeof(PDU) + 1) >> 8) & 0xFF;
-  MBAP[5] = ( sizeof(PDU) + 1) & 0xFF;
+  // Length: Unit Identifier (1 byte) + SDU length
+  MBAP[4] = ( (sizeof(SDU) + 1) >> 8) & 0xFF;
+  MBAP[5] = ( sizeof(SDU) + 1) & 0xFF;
   // Unit Identifier (1 byte)
-  MBAP[6] = 0xFF;
+  MBAP[6] = 0xff;
 
-  //create ADU = MBAP + PDU
-  ADU = (unsigned char*) malloc(sizeof(MBAP) + sizeof(PDU));
+  //create PDU = MBAP + SDU
+  //PDU = (unsigned char*) malloc(7 + sizeof(SDU));
 
-  for (i = 0; i < sizeof(MBAP); i++)
-    ADU[i] = MBAP[i];
+  for (i = 0; i < 7; i++)
+    PDU[i] = MBAP[i];
 
   for (int j = 0; j < sizeof(PDU); j++)
-    ADU[i+j] = PDU[j];
+    PDU[7+j] = SDU[j];
 
   // envia Modbus TCP PDU
-  res = write(fd, ADU, sizeof(ADU));
+  res = write(fd, PDU, sizeof(PDU));
 
   // check response
-  if ( res == -1 || res != sizeof(ADU) )
+  if ( res == -1 || res != sizeof(PDU) )
   {
-    write(fd, "ERROR sending ADU!\n");
+    printf("ERROR sending ADU!\n");
+    write(fd, "ERROR sending ADU!\n", 50);
     return -1;
   }
 
   // lê Modbus TCP PDU
-  ADU_R = (unsigned char*)malloc(sizeof(ADU));
-  res = read(fd, ADU_R);
+  //PDU_R = (unsigned char*)malloc(5);
+  res = read(fd, PDU_R, 12);
 
  // check response
-<<<<<<< HEAD
-   if ( res == -1 || res != sizeof(ADU_R) )
-   {
-     write(fd, "ERROR reading ADU_R!\n");
-=======
-    if ( res == -1 || res != sizeof(ADU_R) )
-    {
-     write(fd, "ERROR reading ADU_R!\n", 50);
->>>>>>> 97dcb57ed7f126f79cc81bbd8c9783041996d1a0
-     return -1;
-    }
+  if ( res == -1 )
+  {
+    write(fd, "ERROR reading ADU_R!\n", 50);
+    return -1;
+  }
 
-   // remove Header from ADU_R -> return PDU_R
-<<<<<<< HEAD
-   PDU_R = (unsigned char*)malloc(sizeof(ADU_R) );
-=======
-   PDU_R = (unsigned char*)malloc(sizeof(ADU_R) - 7 );
+  // remove Header from PDU_R -> return SDU_R
+    SDU_R = (unsigned char*)malloc( res - 7 );
 
->>>>>>> 97dcb57ed7f126f79cc81bbd8c9783041996d1a0
-   for (i = 0; i < sizeof(ADU_R); i++)
-     PDU_R[i] = ADU_R[i + 7];
+   for (i = 0; i < res; i++)
+     SDU_R[i] = PDU_R[7 + i];
 
-   n_coils = (unsigned int)(PDU_R[3] << 8) + (unsigned int)(PDU_R[4]);
+   n_coils = (unsigned int)(SDU_R[3] << 8) + (unsigned int)(SDU_R[4]);
+
+   /***********************************************************************************************/
+   print_hex("SDU",SDU, sizeof(SDU));
+   print_hex("Header",MBAP, 7);
+   print_hex("PDU",PDU, sizeof(PDU));
+   print_hex("PDU_R",PDU_R, res);
+   print_hex("SDU_R",SDU_R, res - 7);
+
+   /***********************************************************************************************/
 
    // no errors
    return n_coils;

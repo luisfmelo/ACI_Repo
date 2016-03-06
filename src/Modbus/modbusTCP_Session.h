@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "tcp.h"
+#include "aux.h"
 
           /* Session layer */
 
