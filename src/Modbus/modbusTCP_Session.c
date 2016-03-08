@@ -1,6 +1,6 @@
 #include "modbusTCP_Session.h"
 
-int ID = 0;
+int ID = 100;
 
 /**
  *
@@ -8,7 +8,7 @@ int ID = 0;
 int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R)
 {
   unsigned int trans_id, res, i, n_coils;
-  unsigned char MBAP[7], PDU[7 + sizeof(SDU)], PDU_R[5];
+  unsigned char MBAP[7], PDU[7 + sizeof(SDU)], PDU_R[12];
 
   // generate TI (transaction ID - sequence number)
   trans_id = ID;
@@ -85,69 +85,9 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R)
 /**
  *
  */
-int Receive_Modbus_request (int fd, unsigned char *PDU, int *TI)
+int Receive_Modbus_request (int fd, unsigned char *SDU, int *TI)
 {
-  unsigned char ADU[1];
-  int res;
-
-  res = readSocket(fd, ADU);  // lê PDU com pedido
-  if (res < 0)  {
-    //ERRO
-      printf("Erro a receber...");
-  }
-
-  // extrai MBAP (PDU -> APDU_P) e TI
-  *TI = (int)(PDU[0] << 8) + (int)(PDU[1]);
-
-  PDU = (unsigned char*)malloc((sizeof(ADU) - 7) * sizeof(unsigned char));
-
-  for(int i = 0; i < sizeof(PDU) ; i++)
-    PDU[i] = ADU[i+7];
-
-  // retorna: ADU e TI – ok, <0 – erro
-  return 1;
-}
-
-/**
- *
- */
-int Send_Modbus_response (int fd, unsigned char *APDU_R, int TI)
-{
-  // constroi PDU = APDU_R + MBAP[= 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)] (com TI)
-  unsigned char * MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
-
-  // Transaction Identifier (2 bytes)
-  MBAP[0] = (TI >> 8) & 0xFF;
-  MBAP[1] = TI & 0xFF;
-  // Protocol Identifier -> 0: MODBUS
-  MBAP[2] = 0x00;
-  MBAP[3] = 0x00;
-  // Length: Unit Identifier (1 byte) + PDU length
-  MBAP[4] = ((sizeof(APDU_R) + 1) >> 8) & 0xFF;
-  MBAP[5] = (sizeof(APDU_R) + 1) & 0xFF;
-  // Unit Identifier (1 byte)
-  MBAP[6] = 0x01;
-
-  unsigned char * PDU = (unsigned char*)malloc((sizeof(APDU_R) + 7) * sizeof(unsigned char));
-
-  int i;
-
-  for(i = 0; i < sizeof(MBAP); i++)
-    PDU[i] = MBAP[i];
-
-  for(int j = 0; j < sizeof(APDU_R); j++)
-      PDU[i+j] = APDU_R[j];
-
-  // envia Modbus TCP PDU com resposta
-  // retorna: >0 – ok, <0 – erro
-  return writeSocket(fd, PDU);
-}
-
-/**
- *
- */
-int readSocket (int fd, unsigned char* ADU)
-{
+  unsigned char *PDU ;
   int n;
   unsigned char buff[260];
 
@@ -158,20 +98,56 @@ int readSocket (int fd, unsigned char* ADU)
       return -1;
   }
 
-  ADU = (unsigned char *)realloc(ADU, n * sizeof(unsigned char));
+  PDU = (unsigned char *)malloc(n * sizeof(unsigned char));
 
   for(int i = 0; i < n; i++)
-    ADU[i] = buff[i];
+    PDU[i] = buff[i];
 
-  //no errors
-  return n;
+  // PDU = Header + SDU
+  // extrai MBAP (PDU -> APDU_P) e TI
+  *TI = (int)(PDU[0] << 8) + (int)(PDU[1]);
+
+  SDU = (unsigned char*)realloc( SDU, (n - 7) * sizeof(unsigned char));
+
+  for(int i = 0; i < (n - 7) ; i++)
+    SDU[i] = PDU[i+7];
+
+  // retorna: SDU e TI – ok, <0 – erro
+  return 1;
 }
 
 /**
  *
  */
-int writeSocket (int fd, unsigned char* PDU)
+int Send_Modbus_response (int fd, unsigned char *SDU_R, int TI)
 {
+  // constroi PDU = SDU_R + MBAP[= 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)] (com TI)
+  unsigned char * MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
+
+  // Transaction Identifier (2 bytes)
+  MBAP[0] = (TI >> 8) & 0xFF;
+  MBAP[1] = TI & 0xFF;
+  // Protocol Identifier -> 0: MODBUS
+  MBAP[2] = 0x00;
+  MBAP[3] = 0x00;
+  // Length: Unit Identifier (1 byte) + PDU length
+  MBAP[4] = ((sizeof(SDU_R) + 1) >> 8) & 0xFF;
+  MBAP[5] = (sizeof(SDU_R) + 1) & 0xFF;
+  // Unit Identifier (1 byte)
+  MBAP[6] = 0x01;
+
+  unsigned char * PDU = (unsigned char*)malloc((sizeof(SDU_R) + 7) * sizeof(unsigned char));
+
+  int i;
+
+  for(i = 0; i < sizeof(MBAP); i++)
+    PDU[i] = MBAP[i];
+
+  for(int j = 0; j < sizeof(SDU_R); j++)
+      PDU[i+j] = SDU_R[j];
+
+  // envia Modbus TCP PDU com resposta
+  // retorna: >0 – ok, <0 – erro
   int n;
 
   n = write(fd, PDU, sizeof(PDU));

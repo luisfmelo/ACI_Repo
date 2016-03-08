@@ -12,15 +12,32 @@ void showActiveCoils()
 
 int W_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
-  int i;
+  int i, j = 0, n = 0;
 
   // escreve n_c coils a partir de st_c e escreve val
-  for(i = 0; i < nCoils; i++) {
-    Coils[startCoilAddr + i] = valueCoils[i/8] & (1 << i%8);
+  while(1)
+  {
+    int bit[8];
+    for (i = 0; i < 8; i++)
+      bit[i] = ((valueCoils[j] >> i) & 1);
+
+    for (i = 0; i < 8 ; i++, n++)
+    {
+      if ( n > nCoils )
+        break;
+      Coils[n + startCoilAddr] = bit[i] + 48;
+    }
+
+    j ++;
+    if (j * 8 >= nCoils)
+      break;
   }
 
+  for(i = 0; i < 40; i++)
+    printf("%d: %c\n", i, Coils[i]);
+
   // retorna: num coils escritas, valores em val – ok,  <0 – erro
-  return i;
+  return nCoils;
 }
 
 int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
@@ -34,9 +51,8 @@ int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
 
   valueCoils = (unsigned char*)malloc(N * sizeof(unsigned char));
 
-  for(i = 0; i < nCoils; i++) {
+  for(i = 0; i < nCoils; i++)
     valueCoils[i/8] |= Coils[startCoilAddr + i] & (1 << i%8);
-  }
 
   return i;
 }

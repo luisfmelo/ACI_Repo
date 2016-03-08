@@ -228,65 +228,67 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
 int Request_handler (int fd)
 {
   int TI;
-  unsigned char * APDU_P = 0, * APDU_R = 0;
+  unsigned char *PDU_P, *PDU_R;
 
-  Receive_Modbus_request(fd, APDU_P, &TI);
+  PDU_P = (unsigned char*)malloc(sizeof(char));
+  Receive_Modbus_request(fd, PDU_P, &TI);
+  print_hex("PDU_P",PDU_P , sizeof(PDU_P));
 
   // analiza e executa pedido se correto
-  if(APDU_P[0] == 0x0F) {
+  if(PDU_P[0] == 0x0F) {
       int startCoilAddr, nCoils, remainingBytes;
 
-      startCoilAddr = (int)(APDU_P[1] << 8) + (int)(APDU_P[2]);
-      nCoils = (int)(APDU_P[3] << 8) + (int)(APDU_P[4]);
-      remainingBytes = APDU_P[5];
+      //Decompoe PDU
+      startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
+      nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
+      remainingBytes = PDU_P[5];
 
       unsigned char * valueCoils = (unsigned char*)malloc(remainingBytes * sizeof(unsigned char));
 
       for(int i = 0; i < remainingBytes; i++) {
-          valueCoils[i] = APDU_P[i + 6];
+          valueCoils[i] = PDU_P[i + 6];
       }
 
       int ok = W_coils(startCoilAddr, nCoils, valueCoils);
 
-      if(ok == nCoils) {
-
-          APDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
-
+      PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
+      if(ok == nCoils)
+      {
         for(int i = 0; i < 5; i++)
-            APDU_R[i] = APDU_P[i];
-      } else {
-
-          APDU_R = (unsigned char*)malloc(2 * sizeof(unsigned char));
-
-        APDU_R[0] = 0x8F;
-        APDU_R[0] = 0x69;
+            PDU_R[i] = PDU_P[i];
       }
+      else {
+        //erro
+        PDU_R = (unsigned char*)realloc(PDU_R, 2 * sizeof(unsigned char));
 
-  } else if(APDU_P[0] == 0x01) {
+        PDU_R[0] = 0x8F;
+        PDU_R[1] = 0x69;
+      }
+  }
+  else if(PDU_P[0] == 0x01) {
       int startCoilAddr, nCoils;
-      unsigned char * valueCoils=0;
+      unsigned char *valueCoils=0;
 
-      startCoilAddr = (int)(APDU_P[1] << 8) + (int)(APDU_P[2]);
-      nCoils = (int)(APDU_P[3] << 8) + (int)(APDU_P[4]);
+      startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
+      nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
 
-      R_coils(startCoilAddr, nCoils, valueCoils);
+      int ok = R_coils(startCoilAddr, nCoils, valueCoils);
 
-      APDU_R = (unsigned char*)malloc((6 + sizeof(valueCoils)) * sizeof(unsigned char));
+      PDU_R = (unsigned char*)malloc((6 + sizeof(valueCoils)) * sizeof(unsigned char));
+      if(ok == nCoils)
+      {
+        PDU_R[0] = PDU_P[0];
+        PDU_R[1] = sizeof(valueCoils);
 
-      for(int i = 0; i < 5; i++)
-          APDU_R[i] = APDU_P[i];
-
-          APDU_R[5] = sizeof(valueCoils);
-
-          for(int i = 0; i < sizeof(valueCoils); i++) {
-              APDU_R[6 + i] = valueCoils[i];
-          }
-
-  } else {
+        for(int i = 0; i < sizeof(valueCoils); i++)
+          PDU_R[2 + i] = valueCoils[i];
+      }
+  }
+  else {
       printf("Received a function not supported.\n");
   }
 
-  Send_Modbus_response(fd, APDU_R, TI);
+  Send_Modbus_response(fd, PDU_R, TI);
 
   // retorna: >0 – ok, <0 – erro
   return 1;

@@ -7,11 +7,20 @@
 #define port 6666
 
 int main(){
-  int fd, n, n_send;
-  char buf[256], send[256];
+  int fd, rq_hand;//, n, n_send;
+  //char buf[256], send[256];
 
   fd = connectServer (port);
-  n = read(fd,buf,255);
+
+  rq_hand = Request_handler (fd);
+  if (rq_hand < 0)
+  {
+    printf("Error: Request handler\n");
+    return -1;
+  }
+
+
+  /*n = read(fd,buf,255);
 
   if ( n < 0)
   {
@@ -45,6 +54,6 @@ int main(){
 
   if (n < 0)
       printf("ERROR - WRITE\n");
-
+*/
   disconnect (fd);
 }
