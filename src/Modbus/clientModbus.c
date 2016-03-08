@@ -8,6 +8,7 @@
 
 int main(){
   int fd, res;
+  int startCoilAddr = 20, nCoils = 9;
 
   fd = connectClient ("127.0.0.1", port);
   if (fd < 0)
@@ -15,12 +16,22 @@ int main(){
     return 0; //?????????
   }
 
-/*******************TESTE ESCRITA************************/
-//  unsigned char vals[2] = {0x4C, 0x4D};
-  unsigned char vals[2] = {0xCD, 0x01};
+  /*******************TESTE ESCRITA************************
+  //  unsigned char vals[2] = {0x4C, 0x4D};
+    unsigned char vals[2] = {0xCD, 0x01};
 
-  res = Write_multiple_coils(fd, 20, 9, vals);
-/*******************************************************/
+    res = Write_multiple_coils(fd, startCoilAddr, nCoils, vals);
+  *******************************************************/
+
+  /*******************TESTE LEITURA************************/
+  //  unsigned char vals[2] = {0x4C, 0x4D};
+    unsigned char *vals;
+    vals = (unsigned char*)malloc(nCoils/8 + 1);
+
+    res = Read_coils(fd, startCoilAddr, nCoils, vals);
+
+    print_hex("Received",vals , nCoils/8 + 1);
+  /*******************************************************/
   if (res < -1)
     printf("ERRO!\n");
 

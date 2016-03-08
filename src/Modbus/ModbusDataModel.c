@@ -54,5 +54,6 @@ int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
   for(i = 0; i < nCoils; i++)
     valueCoils[i/8] |= Coils[startCoilAddr + i] & (1 << i%8);
 
+    valueCoils[0] = 0x03;
   return i;
 }

@@ -8,7 +8,7 @@ void print_hex(char *whereAmI, unsigned char *hex, int size)
   printf("(size: %02d) --->%s:\t\t", size, whereAmI);
   for (int i = 0; i < size; i++)
   {
-    printf("%2x ", hex[i]);
+    printf("%02x ", hex[i]);
   }
   printf("\n");
 }

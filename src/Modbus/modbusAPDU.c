@@ -156,8 +156,8 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
  */
 int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
-  unsigned int N, i;
-  unsigned char *PDU, *PDU_R;
+  //unsigned int N;
+  unsigned char PDU[5], *PDU_R;
 
   // Check Parameter consistency
   // start coil between 0x0000 and 0xFFFF
@@ -173,16 +173,15 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
     return -2;
   }
 
-  // Create PDU
+  /* Create PDU
   if (nCoils % 8 != 0)
     N = nCoils / 8 + 1;
   else
     N = nCoils / 8;
-
+*/
   // Create PDU:
-  PDU = (unsigned char*)malloc((N + 6) * sizeof(unsigned char));
 
-  // Function Code: 0x0F
+  // Function Code: 0x01 - Read
   PDU[0] = 0x01;
   // start Address
   PDU[1] = (startCoilAddr >> 8) & 0xff;
@@ -190,17 +189,11 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
   // Qty of outpus
   PDU[3] = (nCoils >> 8) & 0xff;
   PDU[4] = nCoils & 0xff;
-  // Byte Count
-  PDU[5] = N;
-
-  // Data
-  for (i = 0; i < N; i++)
-    PDU[i + 6] = valueCoils[i];
 
   // Create PDU_R
-  //everything fine:  1 byte (0x0F) + 2 bytes (startCoilAddr) + 2 bytes (nCoils)
-  //error:            1 byte (0x8F) + 1 byte (exception Code)
-  PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
+  //everything fine:  1 byte (0x01) + 1 bytes (N ou N+1) + N bytes (valores)
+  //error:            1 byte (0x01 + 0x8F)???? + 1 byte (exception Code)
+  PDU_R = (unsigned char*)malloc(2 * sizeof(unsigned char));
 
  //Send Request
   int res = Send_Modbus_request(fd, PDU, PDU_R);

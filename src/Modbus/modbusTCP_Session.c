@@ -69,14 +69,13 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R)
 
    n_coils = (unsigned int)(SDU_R[3] << 8) + (unsigned int)(SDU_R[4]);
 
-   /***********************************************************************************************/
+   /***********************************************************************************************
    print_hex("SDU",SDU, sizeof(SDU));
    print_hex("Header",MBAP, 7);
    print_hex("PDU",PDU, sizeof(PDU));
    print_hex("PDU_R",PDU_R, res);
    print_hex("SDU_R",SDU_R, res - 7);
-
-   /***********************************************************************************************/
+   ***********************************************************************************************/
 
    // no errors
    return n_coils;
@@ -87,7 +86,7 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R)
  */
 int Receive_Modbus_request (int fd, unsigned char *SDU, int *TI)
 {
-  unsigned char *PDU ;
+  unsigned char *PDU;
   int n;
   unsigned char buff[260];
 
