@@ -156,7 +156,7 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
  */
 int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
-  unsigned int N;
+  unsigned int N, i;
   unsigned char *PDU, *PDU_R;
 
   // Check Parameter consistency
@@ -167,7 +167,7 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
     return -2;
   }
   //nCoils between 0x0001 and 0x07B0
-  if ( nCoils < 0 || nCoils > 0xFFFF )
+  if ( nCoils < 0 || nCoils > 0x07B0 )
   {
     printf("Error with number of coils");
     return -2;
@@ -182,24 +182,30 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
   // Create PDU:
   PDU = (unsigned char*)malloc((N + 6) * sizeof(unsigned char));
 
-  // Function Code: 0x01
+  // Function Code: 0x0F
   PDU[0] = 0x01;
   // start Address
-  PDU[1] = (startCoilAddr >> 8) & 0xff; //MSB
-  PDU[2] = startCoilAddr & 0xff;        //LSB
+  PDU[1] = (startCoilAddr >> 8) & 0xff;
+  PDU[2] = (startCoilAddr & 0xff);
   // Qty of outpus
-  PDU[3] = (nCoils >> 8) & 0xff;        //MSB
-  PDU[4] = nCoils & 0xff;               //LSB
+  PDU[3] = (nCoils >> 8) & 0xff;
+  PDU[4] = nCoils & 0xff;
+  // Byte Count
+  PDU[5] = N;
+
+  // Data
+  for (i = 0; i < N; i++)
+    PDU[i + 6] = valueCoils[i];
 
   // Create PDU_R
   //everything fine:  1 byte (0x0F) + 2 bytes (startCoilAddr) + 2 bytes (nCoils)
   //error:            1 byte (0x8F) + 1 byte (exception Code)
   PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
 
-  //Send Request
-  int res = Send_Modbus_request (fd, PDU, PDU_R);
+ //Send Request
+  int res = Send_Modbus_request(fd, PDU, PDU_R);
 
-  // check response
+ // check response
   if ( res == -1)
   {
     printf("Error sending Modbus Request - timeout");
