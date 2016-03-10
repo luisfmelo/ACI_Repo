@@ -15,8 +15,8 @@
 
           /* Session layer */
 
-int Send_Modbus_request (int fd, unsigned char* APDU, unsigned char*APDU_R);
+int Send_Modbus_request (int fd, unsigned char* APDU, unsigned char*APDU_R, int SDUsize);
 int Receive_Modbus_request (int fd, unsigned char *PDU, int *TI);
-int Send_Modbus_response (int fd, unsigned char *ADU, int TI);
+int Send_Modbus_response (int fd, unsigned char *ADU, int TI, int SDU_Rsize);
 int readSocket (int fd, unsigned char* ADU);
 int writeSocket (int fd, unsigned char* PDU);

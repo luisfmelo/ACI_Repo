@@ -12,7 +12,7 @@ int main(){
 
   fd = connectServer (port);
 
-  rq_hand = Request_handler (fd);
+  rq_hand = Request_handler(fd);
   if (rq_hand < 0)
   {
     printf("Error: Request handler\n");

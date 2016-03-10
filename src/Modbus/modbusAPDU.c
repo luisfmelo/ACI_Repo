@@ -77,7 +77,16 @@ int connectServer (int port)
 int disconnect (int fd)
 {
   printf("\nDisconected with success from socket: %d!\n\n\n", fd);
-  return shutdown(fd, 2);
+  int yes = 1;
+  //char yes='1'; // use this under Solaris
+
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
+
+      printf("Error configuring socket!");
+      exit(1);
+  }
+
+  return close(fd);
 }
 
 /**
@@ -108,8 +117,16 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   else
     N = nCoils / 8;
 
+    printf("N coils: %d\n", N);
+
   // Create PDU:
-  PDU = (unsigned char*)malloc((N + 6) * sizeof(unsigned char));
+  PDU = (unsigned char*)malloc((N + 6));
+  if(PDU == NULL) {
+      printf("Error alocating memory!\n");
+  }
+
+  printf("N+6=%d\n", (N+6));
+  print_hex("PDU_blank", PDU, sizeof(PDU));
 
   // Function Code: 0x0F
   PDU[0] = 0x0F;
@@ -126,15 +143,17 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   for (i = 0; i < N; i++)
     PDU[i + 6] = valueCoils[i];
 
+  print_hex("PDU", PDU, N+6);
+
   // Create PDU_R
   //everything fine:  1 byte (0x0F) + 2 bytes (startCoilAddr) + 2 bytes (nCoils)
   //error:            1 byte (0x8F) + 1 byte (exception Code)
   PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
 
- //Send Request
-  int res = Send_Modbus_request(fd, PDU, PDU_R);
+  //Send Request
+  int res = Send_Modbus_request(fd, PDU, PDU_R, N+6);
 
- // check response
+  // check response
   if ( res == -1)
   {
     printf("Error sending Modbus Request - timeout");
@@ -143,7 +162,7 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   //ou else if? se for timeout da sempre erro?
   if ( PDU_R[0] == 0x8F )
   {
-    printf("Error sending Modbus Request - Error: %c", PDU_R[1]);
+    printf("Error sending Modbus Request - Error: %x", PDU_R[1]);
     return -1;
   }
 
@@ -196,7 +215,7 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
   PDU_R = (unsigned char*)malloc(2 * sizeof(unsigned char));
 
  //Send Request
-  int res = Send_Modbus_request(fd, PDU, PDU_R);
+  int res = Send_Modbus_request(fd, PDU, PDU_R, 5);
 
  // check response
   if ( res == -1)
@@ -220,12 +239,13 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
  */
 int Request_handler (int fd)
 {
-  int TI;
+  int TI, PDU_Rsize;
   unsigned char *PDU_P, *PDU_R;
 
   PDU_P = (unsigned char*)malloc(sizeof(char));
-  Receive_Modbus_request(fd, PDU_P, &TI);
-  print_hex("PDU_P",PDU_P , sizeof(PDU_P));
+
+  int PDU_Psize = Receive_Modbus_request(fd, PDU_P, &TI);
+  print_hex("PDU_P",PDU_P , PDU_Psize);
 
   // analiza e executa pedido se correto
   if(PDU_P[0] == 0x0F) {
@@ -247,12 +267,18 @@ int Request_handler (int fd)
       PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
       if(ok == nCoils)
       {
+        PDU_Rsize = 5;
+
+        print_hex("Write-PDU_P", PDU_P, PDU_Psize);
+
         for(int i = 0; i < 5; i++)
             PDU_R[i] = PDU_P[i];
+
+        print_hex("Write-PDU_R", PDU_R, 5);
       }
       else {
         //erro
-        PDU_R = (unsigned char*)realloc(PDU_R, 2 * sizeof(unsigned char));
+        PDU_Rsize = 2;
 
         PDU_R[0] = 0x8F;
         PDU_R[1] = 0x69;
@@ -268,6 +294,8 @@ int Request_handler (int fd)
       int ok = R_coils(startCoilAddr, nCoils, valueCoils);
 
       PDU_R = (unsigned char*)malloc((6 + sizeof(valueCoils)) * sizeof(unsigned char));
+      PDU_Rsize = (6 + sizeof(valueCoils));
+
       if(ok == nCoils)
       {
         PDU_R[0] = PDU_P[0];
@@ -281,7 +309,7 @@ int Request_handler (int fd)
       printf("Received a function not supported.\n");
   }
 
-  Send_Modbus_response(fd, PDU_R, TI);
+  Send_Modbus_response(fd, PDU_R, TI, PDU_Rsize);
 
   // retorna: >0 – ok, <0 – erro
   return 1;

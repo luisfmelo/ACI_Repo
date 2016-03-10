@@ -16,11 +16,17 @@ int main(){
     return 0; //?????????
   }
 
+  printf("Client started. Press any to send...\n");
+
   /*******************TESTE ESCRITA************************
   //  unsigned char vals[2] = {0x4C, 0x4D};
     unsigned char vals[2] = {0xCD, 0x01};
 
+    getchar();
+
     res = Write_multiple_coils(fd, startCoilAddr, nCoils, vals);
+
+    printf("Hello");
   *******************************************************/
 
   /*******************TESTE LEITURA************************/
@@ -30,7 +36,7 @@ int main(){
 
     res = Read_coils(fd, startCoilAddr, nCoils, vals);
 
-    print_hex("Received",vals , nCoils/8 + 1);
+    print_hex("Received", vals, nCoils/8 + 1);
   /*******************************************************/
   if (res < -1)
     printf("ERRO!\n");
