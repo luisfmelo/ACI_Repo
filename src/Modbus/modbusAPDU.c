@@ -46,9 +46,18 @@ int connectServer (int port)
     printf("ERROR opening socket\n");
     return -1;
   }
+
   serv_addr.sin_family = AF_INET;                //endereço da familia - sempre AF_INET
   serv_addr.sin_port = htons(port);              //Numero da porta - #DEFINE
   serv_addr.sin_addr.s_addr = INADDR_ANY;        //IP da maquina - INADDR_ANY faz isso por nos
+
+  int yes=1;
+
+  // lose the pesky "Address already in use" error message
+  if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+    perror("setsockopt");
+    exit(1);
+  }
 
   err = bind(fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
   if ( err < 0) {
@@ -77,14 +86,6 @@ int connectServer (int port)
 int disconnect (int fd)
 {
   printf("\nDisconected with success from socket: %d!\n\n\n", fd);
-  int yes = 1;
-  //char yes='1'; // use this under Solaris
-
-  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
-
-      printf("Error configuring socket!");
-      exit(1);
-  }
 
   return close(fd);
 }
@@ -95,18 +96,16 @@ int disconnect (int fd)
 int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
   unsigned int N, i;
-  unsigned char *PDU, *PDU_R;
+  unsigned char PDU[256], PDU_R[5];
 
   // Check Parameter consistency
   // start coil between 0x0000 and 0xFFFF
-  if ( startCoilAddr < 0 || startCoilAddr > 0xFFFF )
-  {
+  if ( startCoilAddr < 0 || startCoilAddr > 0xFFFF ) {
     printf("Error with start Address");
     return -2;
   }
   //nCoils between 0x0001 and 0x07B0
-  if ( nCoils < 0 || nCoils > 0x07B0 )
-  {
+  if ( nCoils < 0 || nCoils > 0x07B0 ) {
     printf("Error with number of coils");
     return -2;
   }
@@ -117,16 +116,8 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   else
     N = nCoils / 8;
 
-    printf("N coils: %d\n", N);
-
-  // Create PDU:
-  PDU = (unsigned char*)malloc((N + 6));
-  if(PDU == NULL) {
-      printf("Error alocating memory!\n");
-  }
-
   printf("N+6=%d\n", (N+6));
-  print_hex("PDU_blank", PDU, sizeof(PDU));
+  print_hex("PDU_blank", PDU, (N+6));
 
   // Function Code: 0x0F
   PDU[0] = 0x0F;
@@ -148,20 +139,17 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   // Create PDU_R
   //everything fine:  1 byte (0x0F) + 2 bytes (startCoilAddr) + 2 bytes (nCoils)
   //error:            1 byte (0x8F) + 1 byte (exception Code)
-  PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
 
   //Send Request
   int res = Send_Modbus_request(fd, PDU, PDU_R, N+6);
 
   // check response
-  if ( res == -1)
-  {
+  if ( res == -1) {
     printf("Error sending Modbus Request - timeout");
     return -1;
   }
-  //ou else if? se for timeout da sempre erro?
-  if ( PDU_R[0] == 0x8F )
-  {
+
+  if ( PDU_R[0] == 0x8F ) {
     printf("Error sending Modbus Request - Error: %x", PDU_R[1]);
     return -1;
   }
@@ -240,21 +228,22 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
 int Request_handler (int fd)
 {
   int TI, PDU_Rsize;
-  unsigned char *PDU_P, *PDU_R;
+  unsigned char PDU_P[256], *PDU_R;
 
-  PDU_P = (unsigned char*)malloc(sizeof(char));
-
+  // Recebe um pedido
   int PDU_Psize = Receive_Modbus_request(fd, PDU_P, &TI);
-  print_hex("PDU_P",PDU_P , PDU_Psize);
+  print_hex("PDU_P", PDU_P , PDU_Psize);
 
   // analiza e executa pedido se correto
   if(PDU_P[0] == 0x0F) {
       int startCoilAddr, nCoils, remainingBytes;
 
-      //Decompoe PDU
-      startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
-      nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
-      remainingBytes = PDU_P[5];
+      printf("\nWrite multiple coils\n");
+
+      // Decompoe PDU
+      startCoilAddr =  (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
+      nCoils =         (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
+      remainingBytes = (int)(PDU_P[5]);
 
       unsigned char * valueCoils = (unsigned char*)malloc(remainingBytes * sizeof(unsigned char));
 
@@ -283,29 +272,41 @@ int Request_handler (int fd)
         PDU_R[0] = 0x8F;
         PDU_R[1] = 0x69;
       }
-  }
-  else if(PDU_P[0] == 0x01) {
+  } else if(PDU_P[0] == 0x01) {
       int startCoilAddr, nCoils;
-      unsigned char *valueCoils=0;
+      unsigned char valueCoils[256];
+
+      printf("\nRead coils\n");
 
       startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
+      printf("\nRead coils1\n");
+
       nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
 
-      int ok = R_coils(startCoilAddr, nCoils, valueCoils);
+      int n = R_coils(startCoilAddr, nCoils, valueCoils);
 
-      PDU_R = (unsigned char*)malloc((6 + sizeof(valueCoils)) * sizeof(unsigned char));
-      PDU_Rsize = (6 + sizeof(valueCoils));
+      PDU_R = (unsigned char*)malloc((2 + n) * sizeof(unsigned char));
+      PDU_Rsize = (2 + n);
 
-      if(ok == nCoils)
-      {
+      printf("\nRead coils2\n");
+
+      if(n == nCoils) {
+          int N;
+
+          if (nCoils % 8 != 0)
+            N = nCoils / 8 + 1;
+          else
+            N = nCoils / 8;
+
         PDU_R[0] = PDU_P[0];
-        PDU_R[1] = sizeof(valueCoils);
+        PDU_R[1] = N;
 
-        for(int i = 0; i < sizeof(valueCoils); i++)
+        for(int i = 0; i < N; i++)
           PDU_R[2 + i] = valueCoils[i];
       }
-  }
-  else {
+
+      printf("\nRead coils end\n");
+  } else {
       printf("Received a function not supported.\n");
   }
 
