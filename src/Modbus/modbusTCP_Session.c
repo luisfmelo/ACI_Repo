@@ -13,7 +13,7 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int S
   // generate TI (transaction ID - sequence number)
   trans_id = ID;
   ID++;
-
+ //
   // create PDU = APDU(SDU) + MBAP
   // create MBAP = 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)
   //MBAP = (unsigned char*)malloc(7 * sizeof(unsigned char));
@@ -39,10 +39,12 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int S
   for (int j = 0; j < SDUsize; j++)
     PDU[7+j] = SDU[j];
 
-  // envia Modbus TCP PDU
-  res = write(fd, PDU, sizeof(PDU));
+  print_hex("new PDU", PDU, 7 + SDUsize);
 
-  printf("PDU size: %d\n", sizeof(PDU));
+  // envia Modbus TCP PDU
+  res = write(fd, PDU, SDUsize + 7);
+
+  //printf("PDU size: %d\n", sizeof(PDU));
 
   // check response
   if ( res == -1 || res != sizeof(PDU) )
@@ -72,7 +74,7 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int S
   }
 
   // remove Header from PDU_R -> return SDU_R
-//SDU_R = (unsigned char*)malloc( res - 7 );
+ //SDU_R = (unsigned char*)malloc( res - 7 );
 
    for (i = 0; i < (res - 7); i++)
      SDU_R[i] = PDU_R[7 + i];

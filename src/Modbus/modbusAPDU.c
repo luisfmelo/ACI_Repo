@@ -125,8 +125,8 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
       printf("Error alocating memory!\n");
   }
 
-  printf("N+6=%d\n", (N+6));
-  print_hex("PDU_blank", PDU, sizeof(PDU));
+  //printf("N+6=%d\n", (N+6));
+  print_hex("PDU_blank", PDU, N+6);
 
   // Function Code: 0x0F
   PDU[0] = 0x0F;
@@ -157,14 +157,18 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   if ( res == -1)
   {
     printf("Error sending Modbus Request - timeout");
+    print_hex("PDU_R", PDU_R, 2);
     return -1;
   }
   //ou else if? se for timeout da sempre erro?
   if ( PDU_R[0] == 0x8F )
   {
     printf("Error sending Modbus Request - Error: %x", PDU_R[1]);
+      print_hex("PDU_R", PDU_R, 2);
     return -1;
   }
+
+  print_hex("PDU_R", PDU_R, 5);
 
   //No error:
   return nCoils;
@@ -197,7 +201,7 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
     N = nCoils / 8 + 1;
   else
     N = nCoils / 8;
-*/
+ */
   // Create PDU:
 
   // Function Code: 0x01 - Read
@@ -249,61 +253,63 @@ int Request_handler (int fd)
 
   // analiza e executa pedido se correto
   if(PDU_P[0] == 0x0F) {
-      int startCoilAddr, nCoils, remainingBytes;
+    printf("Starting to Write...");
+    int startCoilAddr, nCoils, remainingBytes;
 
-      //Decompoe PDU
-      startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
-      nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
-      remainingBytes = PDU_P[5];
+    //Decompoe PDU
+    startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
+    nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
+    remainingBytes = PDU_P[5];                              // quantos chars tem
 
-      unsigned char * valueCoils = (unsigned char*)malloc(remainingBytes * sizeof(unsigned char));
+    unsigned char valueCoils[remainingBytes];
 
-      for(int i = 0; i < remainingBytes; i++) {
-          valueCoils[i] = PDU_P[i + 6];
-      }
+    for(int i = 0; i < remainingBytes; i++) {
+        valueCoils[i] = PDU_P[i + 6];
+    }
 
-      int ok = W_coils(startCoilAddr, nCoils, valueCoils);
+    int ok = W_coils(startCoilAddr, nCoils, valueCoils);
 
-      PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
-      if(ok == nCoils)
-      {
-        PDU_Rsize = 5;
+    PDU_R = (unsigned char*)malloc(5 * sizeof(unsigned char));
+    if(ok == nCoils)
+    {
+      PDU_Rsize = 5;
 
-        print_hex("Write-PDU_P", PDU_P, PDU_Psize);
+      print_hex("Write-PDU_P", PDU_P, PDU_Psize);
 
-        for(int i = 0; i < 5; i++)
-            PDU_R[i] = PDU_P[i];
+      for(int i = 0; i < 5; i++)
+          PDU_R[i] = PDU_P[i];
 
-        print_hex("Write-PDU_R", PDU_R, 5);
-      }
-      else {
-        //erro
-        PDU_Rsize = 2;
+      print_hex("Write-PDU_R", PDU_R, 5);
+    }
+    else {
+      //erro
+      PDU_Rsize = 2;
 
-        PDU_R[0] = 0x8F;
-        PDU_R[1] = 0x69;
-      }
+      PDU_R[0] = 0x8F;
+      PDU_R[1] = 0x69;
+    }
   }
   else if(PDU_P[0] == 0x01) {
-      int startCoilAddr, nCoils;
-      unsigned char *valueCoils=0;
+    printf("Starting to Read...");
+    int startCoilAddr, nCoils;
+    unsigned char *valueCoils=0;
 
-      startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
-      nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
+    startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
+    nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
 
-      int ok = R_coils(startCoilAddr, nCoils, valueCoils);
+    int ok = R_coils(startCoilAddr, nCoils, valueCoils);
 
-      PDU_R = (unsigned char*)malloc((6 + sizeof(valueCoils)) * sizeof(unsigned char));
-      PDU_Rsize = (6 + sizeof(valueCoils));
+    PDU_R = (unsigned char*)malloc((6 + sizeof(valueCoils)) * sizeof(unsigned char));
+    PDU_Rsize = (6 + sizeof(valueCoils));
 
-      if(ok == nCoils)
-      {
-        PDU_R[0] = PDU_P[0];
-        PDU_R[1] = sizeof(valueCoils);
+    if(ok == nCoils)
+    {
+      PDU_R[0] = PDU_P[0];
+      PDU_R[1] = sizeof(valueCoils);
 
-        for(int i = 0; i < sizeof(valueCoils); i++)
-          PDU_R[2 + i] = valueCoils[i];
-      }
+      for(int i = 0; i < sizeof(valueCoils); i++)
+        PDU_R[2 + i] = valueCoils[i];
+    }
   }
   else {
       printf("Received a function not supported.\n");

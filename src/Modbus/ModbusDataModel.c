@@ -33,7 +33,7 @@ int W_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
       break;
   }
 
-  for(i = 0; i < 40; i++)
+  for(i = 0; i < 20; i++)
     printf("%d: %c\n", i, Coils[i]);
 
   // retorna: num coils escritas, valores em val – ok,  <0 – erro
