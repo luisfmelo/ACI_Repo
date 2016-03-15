@@ -8,7 +8,7 @@
 
 int main(){
   int fd, rq_hand;//, n, n_send;
-  //char buf[256], send[256];
+  //char buf[256], send[256]
 
   fd = connectServer (port);
   if (fd < 0)
@@ -16,6 +16,7 @@ int main(){
     printf("Error conecting Server...\n\nTerminating...\n\n");
     return 0;
   }
+
   while (1)
   {
     rq_hand = Request_handler(fd);

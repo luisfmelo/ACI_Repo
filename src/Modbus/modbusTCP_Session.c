@@ -5,7 +5,7 @@ int ID = 100;
 /**
  *
  */
-int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int SDUsize)
+int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int SDUsize, int *SDU_Rsize)
 {
   unsigned int trans_id, res, i, n_coils;
   unsigned char MBAP[7], PDU[7 + SDUsize], PDU_R[256];

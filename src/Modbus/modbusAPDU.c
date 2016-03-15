@@ -180,7 +180,8 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
 int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
   //unsigned int N;
-  unsigned char PDU[5], *PDU_R;
+  unsigned char PDU[5], PDU_R[260];
+  int PDU_Rsize;
 
   // Check Parameter consistency
   // start coil between 0x0000 and 0xFFFF
@@ -216,10 +217,10 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
   // Create PDU_R
   //everything fine:  1 byte (0x01) + 1 bytes (N ou N+1) + N bytes (valores)
   //error:            1 byte (0x01 + 0x8F)???? + 1 byte (exception Code)
-  PDU_R = (unsigned char*)malloc(2 * sizeof(unsigned char));
+  //PDU_R = (unsigned char*)malloc(2 * sizeof(unsigned char));
 
  //Send Request
-  int res = Send_Modbus_request(fd, PDU, PDU_R, 5);
+  int res = Send_Modbus_request(fd, PDU, PDU_R, 5, (int*) 0);
 
  // check response
   if ( res == -1)
