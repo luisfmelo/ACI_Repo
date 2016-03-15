@@ -116,21 +116,8 @@ int Write_multiple_coils(int fd, int startCoilAddr, int nCoils, unsigned char* v
   else
     N = nCoils / 8;
 
-<<<<<<< HEAD
-    printf("N coils: %d\n", N);
-
-  // Create PDU:
-  PDU = (unsigned char*)malloc((N + 6));
-  if(PDU == NULL) {
-      printf("Error alocating memory!\n");
-  }
-
-  //printf("N+6=%d\n", (N+6));
-  print_hex("PDU_blank", PDU, N+6);
-=======
   printf("N+6=%d\n", (N+6));
   print_hex("PDU_blank", PDU, (N+6));
->>>>>>> new1
 
   // Function Code: 0x0F
   PDU[0] = 0x0F;
@@ -296,11 +283,6 @@ int Request_handler (int fd)
       printf("\nRead coils\n");
 
       startCoilAddr = (int)(PDU_P[1] << 8) + (int)(PDU_P[2]);
-<<<<<<< HEAD
-      printf("\nRead coils1 - %d\n", startCoilAddr);
-=======
-      printf("\nRead coils1\n");
->>>>>>> new1
 
       nCoils = (int)(PDU_P[3] << 8) + (int)(PDU_P[4]);
 
