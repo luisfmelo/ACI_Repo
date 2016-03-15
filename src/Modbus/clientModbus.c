@@ -53,7 +53,11 @@ int main(){
 
       res = Read_coils(fd, startCoilAddr, nCoils, vals);
 
+<<<<<<< HEAD
       //  print_hex("Received", vals, nCoils/8 + 1);
+=======
+      print_hex("Received", vals, nCoils % 8 == 0 ? nCoils/8 : nCoils/8 + 1);
+>>>>>>> new1
       /*******************************************************/
     }
 

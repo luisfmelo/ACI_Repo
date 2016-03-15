@@ -12,3 +12,10 @@ void print_hex(char *whereAmI, unsigned char *hex, int size)
   }
   printf("\n");
 }
+
+int power(int base, unsigned int exp) {
+    int i, result = 1;
+    for (i = 0; i < exp; i++)
+        result *= base;
+    return result;
+ }

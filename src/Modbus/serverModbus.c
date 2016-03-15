@@ -12,6 +12,7 @@ int main(){
 
   fd = connectServer (port);
   if (fd < 0)
+<<<<<<< HEAD
   {
     printf("Error conecting Server...\n\nTerminating...\n\n");
     return 0;
@@ -66,3 +67,23 @@ n_send = write(fd,buf,n_send);
 if (n < 0)
     printf("ERROR - WRITE\n");
 */
+=======
+  {
+    printf("Error conecting Server...\n\nTerminating...\n\n");
+    return 0;
+  }
+
+  while (1)
+  {
+    rq_hand = Request_handler(fd);
+
+    if (rq_hand < 0)
+    {
+      printf("Error: Request handler\n");
+      return -1;
+    }
+  }
+
+  disconnect (fd);
+}
+>>>>>>> new1
