@@ -134,7 +134,7 @@ int Send_Modbus_response (int fd, unsigned char *SDU_R, int TI, int SDU_Rsize)
   MBAP[4] = ((SDU_Rsize + 1) >> 8) & 0xFF;
   MBAP[5] = (SDU_Rsize + 1) & 0xFF;
   // Unit Identifier (1 byte)
-  MBAP[6] = 0x01;
+  MBAP[6] = 0x77;
 
   unsigned char PDU[SDU_Rsize + 7];
 

@@ -207,7 +207,7 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
   //PDU_R = (unsigned char*)malloc(2 * sizeof(unsigned char));
 
  //Send Request
-  int res = Send_Modbus_request(fd, PDU, PDU_R, 5);
+ int res = Send_Modbus_request(fd, PDU, PDU_R, 5);
 
  // check response
   if ( res == -1)
@@ -221,6 +221,9 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
     printf("Error sending Modbus Request - Error: %c", PDU_R[1]);
     return -1;
   }
+
+  for(int i=0; i < PDU_R[1]; i++)
+    valueCoils[i] = PDU_R[i+2];
 
   //No error:
   return nCoils;

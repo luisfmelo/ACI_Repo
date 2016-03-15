@@ -41,10 +41,9 @@ int main(){
     }
     else if ( c == 'r' || c == 'R')
     {
-      //clean(vals, res);
-      unsigned char c[260];
-      res = Read_coils(fd, startCoilAddr, nCoils, c);
-      print_hex("Received", c, nCoils % 8 == 0 ? nCoils/8 : nCoils/8 + 1);
+      clean(vals, res);
+      res = Read_coils(fd, startCoilAddr, nCoils, vals);
+      print_hex("Received", vals, nCoils % 8 == 0 ? nCoils/8 : nCoils/8 + 1);
     }
 
     if (res < -1)
