@@ -7,8 +7,7 @@
 #define port 6666
 
 int main(){
-  int fd, rq_hand;//, n, n_send;
-  //char buf[256], send[256]
+  int fd, rq_hand;
 
   fd = connectServer (port);
   if (fd < 0)

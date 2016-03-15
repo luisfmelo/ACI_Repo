@@ -19,3 +19,11 @@ int power(int base, unsigned int exp) {
         result *= base;
     return result;
  }
+
+ void clean(unsigned char *vals, int n)
+ {
+   for (int i = 0; i < n; i++)
+   {
+     vals[i] = 0x00;
+   }
+ }

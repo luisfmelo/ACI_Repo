@@ -288,9 +288,7 @@ int Request_handler (int fd)
 
       int n = R_coils(startCoilAddr, nCoils, valueCoils);
 
-      PDU_R = (unsigned char*)malloc((2 + n) * sizeof(unsigned char));
-      PDU_Rsize = (2 + n);
-
+      printf("-------------------- %d", n);
       printf("\nRead coils2\n");
 
       if(n == nCoils) {
@@ -300,6 +298,9 @@ int Request_handler (int fd)
             N = nCoils / 8 + 1;
           else
             N = nCoils / 8;
+
+        PDU_Rsize = N + 2;
+        PDU_R = (unsigned char*)malloc((2 + N) * sizeof(unsigned char));
 
         PDU_R[0] = PDU_P[0];
         PDU_R[1] = N;

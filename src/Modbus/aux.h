@@ -4,3 +4,4 @@
 
 void print_hex(char *whereAmI, unsigned char *hex, int size);
 int power(int base, unsigned int exp);
+void clean(unsigned char *vals, int n);

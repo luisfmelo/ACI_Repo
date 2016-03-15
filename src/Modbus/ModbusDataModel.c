@@ -45,14 +45,19 @@ int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
   int j = 0;
   int N = nCoils % 8 != 0 ? nCoils / 8 + 8 :
-                            nCoils;
-
+                             nCoils;
+  /*for(int i = 0; i < nCoils; i++)
+  {
+    valueCoils[i/8] |= Coils[startCoilAddr + i] & (1 << i%8);
+    printf("############################################\n %x", valueCoils[i/8]);
+    }
+  */
   int *bits;
 
   bits = (int*) malloc(sizeof(int) * N);
 
   // le n_coils a partir de startCoilAddr e escreve em valueCoils - retorna N bytes lidos
-  while(j < N) {
+  while(j < nCoils) {
     if (Coils[startCoilAddr + j] == 48)
       bits[j] = 0;
     else
