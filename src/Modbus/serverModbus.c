@@ -7,15 +7,25 @@
 #define port 6666
 
 int main(){
-  int fd, rq_hand;
+  int fd, rq_hand;//, n, n_send;
+  //char buf[256], send[256]
 
   fd = connectServer (port);
+  if (fd < 0)
+  {
+    printf("Error conecting Server...\n\nTerminating...\n\n");
+    return 0;
+  }
 
-  rq_hand = Request_handler(fd);
+  while (1)
+  {
+    rq_hand = Request_handler(fd);
 
-  if (rq_hand < 0) {
-    printf("Error: Request handler\n");
-    return -1;
+    if (rq_hand < 0)
+    {
+      printf("Error: Request handler\n");
+      return -1;
+    }
   }
 
   disconnect (fd);

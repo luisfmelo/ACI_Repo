@@ -185,7 +185,7 @@ int Read_coils(int fd, int startCoilAddr, int nCoils, unsigned char* valueCoils)
     N = nCoils / 8 + 1;
   else
     N = nCoils / 8;
-*/
+ */
   // Create PDU:
 
   // Function Code: 0x01 - Read

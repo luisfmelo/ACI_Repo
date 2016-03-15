@@ -1,4 +1,5 @@
 #include "ModbusDataModel.h"
+#include "aux.h"
 
 unsigned char Coils[MAX_ADDR] = {0};
 
@@ -42,15 +43,32 @@ int W_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
 
 int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
 {
-  int i, N;
+  int j = 0;
+  int N = nCoils % 8 != 0 ? nCoils / 8 + 8 :
+                            nCoils;
 
-  if (nCoils % 8 != 0)
-    N = nCoils / 8 + 1;
-  else
-    N = nCoils / 8;
+  int *bits;
 
-  for(i = 0; i < nCoils; i++)
-    valueCoils[i/8] |= Coils[startCoilAddr + i] & (1 << i%8);
+  bits = (int*) malloc(sizeof(int) * N);
 
-  return N;
+  // le n_coils a partir de startCoilAddr e escreve em valueCoils - retorna N bytes lidos
+  while(j < N) {
+    if (Coils[startCoilAddr + j] == 48)
+      bits[j] = 0;
+    else
+      bits[j] = 1;
+    j++;
+  }
+
+  j = 0;
+
+  while(j < N / 8) {
+    valueCoils[j] = 0;
+    for(int i = 0; i < 8; i++)
+      valueCoils[j] += bits[j * 8 + i] * power(2, i);
+    j++;
+  }
+
+  // retorna: num coils escritas, valores em val – ok,  <0 – erro
+  return nCoils;
 }

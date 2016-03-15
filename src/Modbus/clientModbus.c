@@ -8,43 +8,58 @@
 
 int main(){
   int fd, res;
-  int startCoilAddr = 20, nCoils = 9;
+  int startCoilAddr, nCoils;
+  char c ;
+  unsigned char vals[260];
 
   fd = connectClient ("127.0.0.1", port);
-  if (fd < 0)  {
-    return -1;
+  if (fd < 0)
+  {
+    printf("Error conecting Client...\n\nTerminating...\n\n");
+    return 0;
   }
 
-  printf("Client started.\n");
+  while(1)
+  {
+    printf("\nClient started. Press:\n\t(W)rite\n\t(R)ead\n\t(E)xit\n");
+    scanf(" %c", &c);
+    if ( c == 'E' || c == 'e')
+      break;
 
-#if 1
-  /*******************TESTE ESCRITA************************/
-  //  unsigned char vals[2] = {0x4C, 0x4D};
-    unsigned char vals[2] = {0xCD, 0x01};
+    printf("\nNumber of Coils: ");
+    scanf("%d", &nCoils);
+    printf("\nStarting at: ");
+    scanf("%d", &startCoilAddr);
 
-    printf("Press any to send...\n");
 
-    getchar();
+    if ( c == 'w' || c == 'W')
+    {
+      /*******************TESTE ESCRITA************************/
+      //  unsigned char vals[2] = {0x4C, 0x4D};
+      //  unsigned char vals[2] = {0xCD, 0x01};
+      printf("\nWrite:");
+      scanf("%s", vals);
+      res = Write_multiple_coils(fd, startCoilAddr, nCoils, vals);
 
-    res = Write_multiple_coils(fd, startCoilAddr, nCoils, vals);
+        //printf("Hello");
+      /*******************************************************/
+    }
+    else if ( c == 'r' || c == 'R')
+    {
+      /*******************TESTE LEITURA************************/
+      //  unsigned char vals[2] = {0x4C, 0x4D};
+      //  unsigned char *vals;
+      //  vals = (unsigned char*)malloc(nCoils/8 + 1);
 
-    printf("Hello");
-  /*******************************************************/
-#else
-  /*******************TESTE LEITURA************************/
+      res = Read_coils(fd, startCoilAddr, nCoils, vals);
 
-    unsigned char *vals;
-    vals = (unsigned char*)malloc(nCoils/8 + 1);
+      print_hex("Received", vals, nCoils % 8 == 0 ? nCoils/8 : nCoils/8 + 1);
+      /*******************************************************/
+    }
 
-    res = Read_coils(fd, startCoilAddr, nCoils, vals);
-
-    print_hex("Received", vals, nCoils/8 + 1);
-  /*******************************************************/
-#endif
-
-  if (res < -1)
-    printf("ERRO!\n");
-
+    if (res < -1)
+      printf("ERRO!\n");
+  }
 
   disconnect (fd);
 }
