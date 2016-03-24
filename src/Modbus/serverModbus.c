@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "modbusAPDU.h"
+#include "ApplicationLayer.h"
 #include "aux.h"
+#include "ModbusDataModel.h"
 
 #define port 6666
 
 int main(){
   int fd, rq_hand;
+
+void initDriver();
 
   fd = connectServer (port);
   if (fd < 0)

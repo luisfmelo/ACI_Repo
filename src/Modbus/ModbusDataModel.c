@@ -1,21 +1,24 @@
 #include "ModbusDataModel.h"
-#include "aux.h"
 
-unsigned char Coils[MAX_ADDR] = {0};
+unsigned char Coils[MAX_ADDR];
 
-void showActiveCoils()
-{
+void initDriver(){
+  for(int i = 0; i < MAX_ADDR; i++) {
+    Coils[i] = 48;
+  }
+}
+
+void showActiveCoils(){
   for(int i = 0; i < MAX_ADDR; i++) {
     if(Coils[i] > 0)
       printf("%d: %d\n", i, Coils[i]);
   }
 }
 
-int W_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
-{
+int W_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils){
   int i, j = 0, n = 0;
 
-  // escreve n_c coils a partir de st_c e escreve val
+  // write nCoils with value valueCoils coils starting at startCoilAddr
   while(1) {
     int bit[8];
 
@@ -34,29 +37,19 @@ int W_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
       break;
   }
 
-  for(i = 0; i < 20; i++)
-    printf("%d: %c\n", i, Coils[i]);
-
-  // retorna: num coils escritas, valores em val – ok,  <0 – erro
+  // return: number of written coils – ok,  <0 – erro
   return nCoils;
 }
 
-int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
-{
+int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils){
   int j = 0;
   int N = nCoils % 8 != 0 ? nCoils / 8 + 8 :
-                             nCoils;
-  /*for(int i = 0; i < nCoils; i++)
-  {
-    valueCoils[i/8] |= Coils[startCoilAddr + i] & (1 << i%8);
-    printf("############################################\n %x", valueCoils[i/8]);
-    }
-  */
+                            nCoils;
   int *bits;
 
   bits = (int*) malloc(sizeof(int) * N);
 
-  // le n_coils a partir de startCoilAddr e escreve em valueCoils - retorna N bytes lidos
+  // read nCoils starting at startCoilAddr and put the result at valueCoils
   while(j < nCoils) {
     if (Coils[startCoilAddr + j] == 48)
       bits[j] = 0;
@@ -74,6 +67,6 @@ int R_coils(int startCoilAddr, int nCoils, unsigned char* valueCoils)
     j++;
   }
 
-  // retorna: num coils escritas, valores em val – ok,  <0 – erro
+  // returna: number of read coils, and values at valueCoils – ok,  <0 – erro
   return nCoils;
 }

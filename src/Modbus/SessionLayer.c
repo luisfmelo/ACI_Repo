@@ -1,12 +1,8 @@
-#include "modbusTCP_Session.h"
+#include "SessionLayer.h"
 
 int ID = 100;
 
-/**
- *
- */
-int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int SDUsize)
-{
+int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int SDUsize){
   unsigned int trans_id, res, i, n_coils;
   unsigned char MBAP[7], PDU[7 + SDUsize], PDU_R[256];
 
@@ -39,36 +35,35 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int S
   for (int j = 0; j < SDUsize; j++)
     PDU[7+j] = SDU[j];
 
-  print_hex("PDU", PDU, 7 + SDUsize);
+  // print_hex("PDU", PDU, 7 + SDUsize);      // for DEBUG
 
-  // envia Modbus TCP PDU
+  // send PDU to server
   res = write(fd, PDU, 7 + SDUsize);
 
   // check response
   if ( res == -1 || res != (7 + SDUsize) ) {
-    printf("ERROR sending ADU!\n");
+    printf("ERROR sending PDU!\n");
     return -1;
   }
 
-  // lê Modbus TCP PDU
+  // read from server -> PDU_R
   res = read(fd, PDU_R, 256);
 
-  // Verifica se o TI recebido é igual ao enviado
+  // check if TI received it's equal to TI who was sent
   if(PDU_R[0] != MBAP[0] || PDU_R[1] != MBAP[1])
     return -1;
 
   printf("Request response read.\n");
 
-  print_hex("PDU_R", PDU_R, res);
+  // print_hex("PDU_R", PDU_R, res);      // for DEBUG
 
   // check response
   if ( res == -1 ) {
-    write(fd, "ERROR reading ADU_R!\n", 50);
+    write(fd, "ERROR reading PDU_R!\n", 50);
     return -1;
   }
 
   // remove Header from PDU_R -> return SDU_R
-  // SDU_R = (unsigned char*)malloc( res - 7 );
 
    for (i = 0; i < (res - 7); i++)
      SDU_R[i] = PDU_R[7 + i];
@@ -89,11 +84,7 @@ int Send_Modbus_request (int fd, unsigned char* SDU, unsigned char* SDU_R, int S
    return n_coils;
 }
 
-/**
- *
- */
-int Receive_Modbus_request (int fd, unsigned char *SDU, int *TI)
-{
+int Receive_Modbus_request (int fd, unsigned char *SDU, int *TI){
   unsigned char PDU[256+7];
   int len;
 
@@ -106,22 +97,19 @@ int Receive_Modbus_request (int fd, unsigned char *SDU, int *TI)
   }
 
   // PDU = Header + SDU
-  // extrai MBAP (PDU -> APDU_P) e TI
+  // get MBAP (PDU -> PDU_P) e TI
   *TI = (int)(PDU[0] << 8) + (int)(PDU[1]);
 
   for(int i = 0; i < (len - 7) ; i++)
     SDU[i] = PDU[i+7];
 
-  // retorna: SDU e TI – ok, <0 – erro
+  // returna: SDU; TI; lenth of SDU – ok, <0 – erro
   return (len-7);
 }
 
-/**
- *
- */
-int Send_Modbus_response (int fd, unsigned char *SDU_R, int TI, int SDU_Rsize)
-{
-  // constroi PDU = SDU_R + MBAP[= 2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)] (com TI)
+int Send_Modbus_response (int fd, unsigned char *SDU_R, int TI, int SDU_Rsize){
+  // MBAP =2 bytes (trans_id) + 2 bytes (protocol_id) + 2 bytes (length) + 1 byte (unit_id)
+  // create PDU(session) = MBAP + SDU_R
   unsigned char MBAP[7];
 
   // Transaction Identifier (2 bytes)
@@ -146,10 +134,9 @@ int Send_Modbus_response (int fd, unsigned char *SDU_R, int TI, int SDU_Rsize)
   for(int j = 0; j < SDU_Rsize; j++)
     PDU[7+j] = SDU_R[j];
 
-    print_hex("Response-PDU", PDU, SDU_Rsize + 7);
+  // print_hex("Response-PDU", PDU, SDU_Rsize + 7);     // for DEBUG
 
-  // envia Modbus TCP PDU com resposta
-  // retorna: >0 – ok, <0 – erro
+  // send Modbus TCP PDU with response
   int n;
 
   n = write(fd, PDU, SDU_Rsize + 7);

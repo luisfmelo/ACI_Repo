@@ -1,7 +1,6 @@
 #include <stdio.h>
 
-#include "modbusAPDU.h"
-
+#include "ApplicationLayer.h"
 #include "aux.h"
 
 #define port 6666
@@ -34,7 +33,6 @@ int main(){
 
     if ( c == 'w' || c == 'W')
     {
-      //clean(vals, res);
       printf("\nWrite:");
       scanf("%s", vals);
       res = Write_multiple_coils(fd, startCoilAddr, nCoils, vals);
@@ -43,7 +41,8 @@ int main(){
     {
       clean(vals, res);
       res = Read_coils(fd, startCoilAddr, nCoils, vals);
-      print_hex("Received", vals, nCoils % 8 == 0 ? nCoils/8 : nCoils/8 + 1);
+      print_hex("Received", vals, nCoils % 8 == 0 ? nCoils/8 : nCoils/8 + 1);    // for DEBUG
+      // print("\nReceived: %s");
     }
 
     if (res < -1)
